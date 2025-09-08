@@ -32,52 +32,27 @@
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <script>
 const repoFilter = {{ (repo or '') | tojson }};
-async function fetchData(ds){
-  const url = '/api/' + ds + (repoFilter ? ('?repo=' + encodeURIComponent(repoFilter)) : '');
+async function getAgg(){
+  const url = '/api/aggregations' + (repoFilter ? ('?repo=' + encodeURIComponent(repoFilter)) : '');
   const res = await fetch(url); return await res.json();
 }
 
-function topN(obj, n){
-  return Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,n);
-}
-
-function monthKey(iso){
-  if(!iso) return 'N/A'; const d = new Date(iso); if(isNaN(d)) return 'N/A';
-  return d.getUTCFullYear() + '-' + String(d.getUTCMonth()+1).padStart(2,'0');
-}
-
 (async function(){
-  const merged = await fetchData('merged_data');
-  const pi = await fetchData('pr_issue');
-  const prd = await fetchData('pr_detail');
-  const isu = await fetchData('issue_detail');
-
-  // merged: top repos by PR count
-  const counts = {};
-  merged.forEach(m => { if(m.repo){ counts[m.repo] = (counts[m.repo]||0)+1; } });
-  const top = topN(counts, 10);
+  const agg = await getAgg();
+  const top = agg.merged_top_repos;
   Plotly.newPlot('merged_top_repos', [{x: top.map(t=>t[0]), y: top.map(t=>t[1]), type: 'bar'}], {title: 'Top 10 repos by PR count'});
 
-  // merged: time series by creation date
-  const series = {};
-  merged.forEach(m => { const k = monthKey(m.created_at); series[k] = (series[k]||0)+1; });
-  const sKeys = Object.keys(series).sort();
-  Plotly.newPlot('merged_time_series', [{x: sKeys, y: sKeys.map(k=>series[k]), type: 'scatter'}], {title: 'PR creation timeline'});
+  const ts = agg.merged_time_series; const sKeys = Object.keys(ts).sort();
+  Plotly.newPlot('merged_time_series', [{x: sKeys, y: sKeys.map(k=>ts[k]), type: 'scatter'}], {title: 'PR creation timeline'});
 
-  // pr_issue: distribution of closing_issue per repo
-  const dist = {};
-  pi.forEach(r => { const repo = r.full_name || 'N/A'; const ci = r.closing_issue!=null ? 1 : 0; dist[repo] = (dist[repo]||0)+ci; });
-  const dTop = topN(dist, 10); Plotly.newPlot('pr_issue_dist', [{x: dTop.map(d=>d[0]), y: dTop.map(d=>d[1]), type: 'bar'}], {title: 'Closing issue counts per repo (Top 10)'});
+  const dTop = agg.pr_issue_closing_issue_counts;
+  Plotly.newPlot('pr_issue_dist', [{x: dTop.map(d=>d[0]), y: dTop.map(d=>d[1]), type: 'bar'}], {title: 'Closing issue counts per repo (Top 10)'});
 
-  // pr_detail: histogram by month
-  const dh = {};
-  prd.forEach(p => { const k = monthKey(p.created_at); dh[k]=(dh[k]||0)+1; });
-  const dk = Object.keys(dh).sort(); Plotly.newPlot('pr_detail_hist', [{x: dk, y: dk.map(k=>dh[k]), type: 'bar'}], {title: 'PRs per month'});
+  const dh = agg.pr_detail_hist_by_month; const dk = Object.keys(dh).sort();
+  Plotly.newPlot('pr_detail_hist', [{x: dk, y: dk.map(k=>dh[k]), type: 'bar'}], {title: 'PRs per month'});
 
-  // issue_detail: top 10 labels
-  const labels = {};
-  isu.forEach(it => { (it.labels||[]).forEach(lb => { const n = lb.name || lb; labels[n] = (labels[n]||0)+1; }); });
-  const lTop = topN(labels, 10); Plotly.newPlot('issue_labels', [{x: lTop.map(l=>l[0]), y: lTop.map(l=>l[1]), type: 'bar'}], {title: 'Top 10 issue labels'});
+  const lTop = agg.issue_labels_top10; 
+  Plotly.newPlot('issue_labels', [{x: lTop.map(l=>l[0]), y: lTop.map(l=>l[1]), type: 'bar'}], {title: 'Top 10 issue labels'});
 })();
 </script>
 {% endblock %}

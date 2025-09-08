@@ -17,6 +17,79 @@ INDEXES = {}
 AGG_CACHE = {}
 
 
+def month_key(iso):
+    try:
+        from datetime import datetime
+        if not iso:
+            return 'N/A'
+        d = datetime.fromisoformat(iso.replace('Z','+00:00'))
+        return f"{d.year}-{d.month:02d}"
+    except Exception:
+        return 'N/A'
+
+
+def compute_aggregations(repo_filter: str | None):
+    key = repo_filter or 'ALL'
+    if key in AGG_CACHE:
+        return AGG_CACHE[key]
+
+    def by_repo_match(o):
+        if not repo_filter:
+            return True
+        rf = repo_filter.lower()
+        return (str(o.get('repo') or '').lower().startswith(rf) or
+                str(o.get('full_name') or '').lower().startswith(rf) or
+                rf in str(o.get('repository_url') or '').lower())
+
+    merged = [o for o in DATASETS['merged_data'] if by_repo_match(o)]
+    pr_issue = [o for o in DATASETS['pr_issue'] if by_repo_match(o)]
+    pr_detail = [o for o in DATASETS['pr_detail'] if by_repo_match(o)]
+    issue_detail = [o for o in DATASETS['issue_detail'] if by_repo_match(o)]
+
+    # Aggregations
+    top_repos = {}
+    for m in merged:
+        r = m.get('repo')
+        if r:
+            top_repos[r] = top_repos.get(r, 0) + 1
+
+    merged_ts = {}
+    for m in merged:
+        k = month_key(m.get('created_at'))
+        merged_ts[k] = merged_ts.get(k, 0) + 1
+
+    closing_issue_counts = {}
+    for r in pr_issue:
+        repo = r.get('full_name') or 'N/A'
+        ci = 1 if r.get('closing_issue') is not None else 0
+        closing_issue_counts[repo] = closing_issue_counts.get(repo, 0) + ci
+
+    pr_detail_hist = {}
+    for p in pr_detail:
+        k = month_key(p.get('created_at'))
+        pr_detail_hist[k] = pr_detail_hist.get(k, 0) + 1
+
+    labels_count = {}
+    for it in issue_detail:
+        for lb in (it.get('labels') or []):
+            if isinstance(lb, dict):
+                name = lb.get('name')
+            else:
+                name = str(lb)
+            if name:
+                labels_count[name] = labels_count.get(name, 0) + 1
+
+    result = {
+        'merged_top_repos': sorted(top_repos.items(), key=lambda x: x[1], reverse=True)[:10],
+        'merged_time_series': merged_ts,
+        'pr_issue_closing_issue_counts': sorted(closing_issue_counts.items(), key=lambda x: x[1], reverse=True)[:10],
+        'pr_detail_hist_by_month': pr_detail_hist,
+        'issue_labels_top10': sorted(labels_count.items(), key=lambda x: x[1], reverse=True)[:10],
+    }
+    AGG_CACHE[key] = result
+    return result
+
+
 def load_jsonl(path: Path):
     items = []
     if not path.exists():
@@ -190,6 +263,13 @@ def api_dataset(dataset_name):
 def visualize():
     repo = request.args.get('repo')
     return render_template('visualize.html', repo=repo)
+
+
+@app.route('/api/aggregations')
+def api_aggregations():
+    repo = request.args.get('repo')
+    data = compute_aggregations(repo)
+    return jsonify(data)
 
 
 if __name__ == '__main__':
