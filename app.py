@@ -145,9 +145,16 @@ def index():
                 keys.update(obj.keys())
         columns = sorted(keys)[:10]  # limit columns for readability
 
-    # Prepare rows with id
+    # Prepare rows with id (limit to keep UI responsive)
+    limit = 200
+    try:
+        limit = int(request.args.get("limit", limit))
+    except Exception:
+        pass
     display_rows = []
-    for rid, obj in id_map.items():
+    for i, (rid, obj) in enumerate(id_map.items()):
+        if i >= limit:
+            break
         row = {"_id": rid}
         for k in columns:
             row[k] = obj.get(k)
