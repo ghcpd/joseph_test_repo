@@ -198,9 +198,16 @@ def dataset_detail(dataset_name: str, record_id: str):
         num = record.get("number")
         pr_issue_entries = []
         try:
-            pr_issue_entries = [x for x in pr_issue_records if x.get("closing_issue") == num]
+            inum = int(num) if num is not None else None
         except Exception:
-            pass
+            inum = None
+        if inum is not None:
+            for x in pr_issue_records:
+                try:
+                    if int(x.get("closing_issue")) == inum:
+                        pr_issue_entries.append(x)
+                except Exception:
+                    continue
         if pr_issue_entries:
             pr_url = None
             pr_obj = pr_issue_entries[0].get("pull_request")
