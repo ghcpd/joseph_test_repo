@@ -16,3 +16,10 @@ A button to clear the input
 A button to calculate the result (=)
 
 Make sure the program runs as a standalone script and opens a working calculator window when executed.
+
+
+How to run:
+- Run: python3 calculator.py
+- Optional headless test (for CI): python3 calculator.py --test "2+3*4" (prints the result without opening a window)
+
+See calculator_screenshot.png for a preview of the UI captured in a headless X environment.
