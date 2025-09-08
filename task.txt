@@ -1,71 +1,28 @@
-Generate a flask app to process and visualize the data
+generate a scientific calculator app
 
-You are given four JSONL files:
-
-1. ./input_data/pr_issue_single.jsonl
-- Modified from https://api.github.com/search/issues
-- Contains PR-related search results with a field 'closing_issue'.
-
-2. ./input_data/pr_detail.jsonl
-- Extracted from https://api.github.com/repos/{repo_name}/pulls/{pr_num}
-- Contains detailed pull request information.
-
-3. ./input_data/issue_detail.jsonl
-- Extracted from https://api.github.com/repos/{repo_name}/issues/{issue_num}
-- Contains detailed issue information.
-
-4. ./output_data/merged_data.jsonl
-- Produced by integrate_pr_issue.py
-- Merges PR–issue data into a unified structure.
-
-You can refer to integrate_pr_issue.py to find the connection of four input file
-
-**Task:**
-Build a Flask-based web application that:
-0. **Provide a requirement.txt**
-- It Should install all required libraries for the task.
-
-1. **Data Loading**
-- Load all four JSONL files into memory at startup.
-- Keep them in separate Python structures (indexed by relevant keys for quick lookup).
-
-2. **Homepage (`/`)**
-- Display a dashboard with:
-- A summary card showing total records in each dataset.
-- Buttons or tabs to switch between datasets (`pr_issue`, `pr_detail`, `issue_detail`, `merged_data`).
-- A searchable, sortable table for the currently selected dataset.
-- For `merged_data.jsonl`, show: repo, issue_number, issue_title, pull_number, created_at.
-- For input files, show their key fields (detect dynamically from JSON keys).
-- Each table row should link to a detail page.
-
-3. **Dataset Detail Pages**
-- `/dataset/<dataset_name>/<record_id>` shows all fields of a single record in a clean layout.
-- Include “related data” section:
-- For a PR in `pr_detail`, link to the matching issue in `issue_detail` (if exists) and vice versa.
-- For `merged_data`, link to its source entries in the input datasets.
-
-4. **Visualization Page (`/visualize`)**
-- Provide interactive charts for **all datasets**:
-- `merged_data`:
-- Bar chart of top 10 repos by PR count.
-- Time series of PR creation dates.
-- `pr_issue_single_test.jsonl`:
-- Distribution of `closing_issue` counts per repo.
-- `pr_detail_test.jsonl`:
-- Histogram of PRs by month/year.
-- `issue_detail_test.jsonl`:
-- Top 10 labels used across issues (if available).
-- Use a JS charting library (Plotly.js or Chart.js) embedded via Jinja templates.
-- Allow filtering charts by repository name via URL query (`?repo=...`).
-
-5. **Technical Requirements**
-- Use Flask + Jinja2 + Bootstrap.
-- Pages must be responsive and mobile-friendly.
-- Handle missing fields gracefully (`N/A` in UI).
-- Organize code: `app.py`, `templates/`, `static/`, `data/`.
-- Include requirements.txt and README.md.
-
-6. **Extra Challenge**
-- Implement client-side table search with DataTables.js.
-- Provide a JSON API endpoint for each dataset (`/api/<dataset_name>`) to return filtered data for chart rendering.
-- Cache computed aggregations so charts load quickly.
+You need to implement a scientific calculator desktop application in Python with a graphical user interface.
+Requirements:
+1. Framework: Use either Tkinter (preferred, since it comes with Python) or PyQt.
+2. No eval: The calculator must not use Python’s built-in eval function for expression evaluation.
+3. Features:
+    Support the four basic arithmetic operations: +, -, *, /
+    Support parentheses for grouping operations
+    Support floating-point numbers and negative numbers
+    Support scientific functions:
+        sin(x), cos(x), tan(x)
+        log(x) (base 10), ln(x) (natural log)
+        sqrt(x) (square root), ^ (exponentiation)
+    Include memory functions: M+, M-, MR, MC
+    Include a history panel that displays the last 10 calculations
+4. User Interface:
+    Buttons for digits (0–9), operators, parentheses, scientific functions, and memory functions
+    A display area for input and results
+    Layout should be clear and user-friendly (scientific calculator style)
+5. Error Handling:
+    Handle division by zero, invalid input, and malformed expressions gracefully (show an error message instead of crashing).
+6. Code Quality:
+    Organize the code into separate modules (parser, calculator, ui)
+    Add comments and docstrings for clarity
+Bonus (optional, for extra points):
+    Add keyboard input support in addition to buttons.
+    Make the UI more visually appealing (themes, styling).
