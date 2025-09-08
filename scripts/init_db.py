@@ -29,6 +29,30 @@ def init_db():
     )
     ''')
 
+    # Deduplicate existing records by keeping the smallest id per unique key
+    c.execute('''
+    DELETE FROM pr
+    WHERE id NOT IN (
+        SELECT MIN(id) FROM pr GROUP BY repo_name, pr_number
+    )
+    ''')
+    c.execute('''
+    DELETE FROM issue
+    WHERE id NOT IN (
+        SELECT MIN(id) FROM issue GROUP BY repo_name, issue_number
+    )
+    ''')
+
+    # Add unique indexes to enforce idempotency on (repo_name, pr_number/issue_number)
+    c.execute('''
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_pr_unique
+    ON pr(repo_name, pr_number)
+    ''')
+    c.execute('''
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_issue_unique
+    ON issue(repo_name, issue_number)
+    ''')
+
     conn.commit()
     conn.close()
     print(f"Database initialized at {DB_PATH}")
