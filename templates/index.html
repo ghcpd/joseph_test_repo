@@ -32,8 +32,14 @@
         {% endfor %}
       </ul>
 
-      <div class="mb-3">
+      <div class="d-flex align-items-center justify-content-between mb-3">
         <a href="{{ url_for('visualize') }}" class="btn btn-primary">Visualize</a>
+        <div class="text-muted small">
+          Showing up to {{ request.args.get('limit', 200) }} rows.
+          <a href="{{ url_for('index') }}?dataset={{ active_dataset }}&limit=100">100</a> |
+          <a href="{{ url_for('index') }}?dataset={{ active_dataset }}&limit=200">200</a> |
+          <a href="{{ url_for('index') }}?dataset={{ active_dataset }}&limit=500">500</a>
+        </div>
       </div>
 
       <div class="table-responsive">
