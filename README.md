@@ -16,6 +16,16 @@ Screenshots:
 - requirements.txt: Python dependencies
 
 ## Run locally
+
+Set a custom port (optional):
+  PORT=5056 python app.py
+
+Key routes:
+- / — Dashboard with dataset counts and tables
+- /dataset/<dataset_name>/<record_id> — Detail view with related data
+- /visualize — Interactive charts (filter with ?repo=<owner/repo>)
+- /api/<dataset_name> — JSON for a dataset, supports ?repo=<owner/repo>
+
 1. Create a virtual environment (optional)
 2. Install dependencies:
    pip install -r requirements.txt
