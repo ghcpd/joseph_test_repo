@@ -2,6 +2,12 @@
 
 This Flask app loads GitHub PR/Issue JSONL datasets and provides a dashboard, detail pages, and interactive visualizations.
 
+Screenshots:
+- Homepage (dataset table): https://github.com/user-attachments/assets/d0541c2c-739e-4457-b6ac-d9554643594b
+- Visualize page: https://github.com/user-attachments/assets/b2c7bfae-b628-42c5-aa5d-3815682e9c34
+- Detail page: https://github.com/user-attachments/assets/5fa28f79-a89a-49e8-a703-365a6c7820f1
+
+
 ## Structure
 - app.py: Flask application
 - templates/: Jinja2 templates (Bootstrap, DataTables, Plotly)
