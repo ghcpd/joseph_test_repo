@@ -38,3 +38,11 @@ Deliverables:
 - New scripts: `show_table.py` and `aggregate_stats.py`.
 - Example commands showing how to use all scripts.
 - Any helper functions should be included in the scripts or a separate `utils.py`.
+
+
+Example usage:
+- python scripts/init_db.py
+- python scripts/load_data.py
+- python scripts/show_table.py pr
+- python scripts/show_table.py issue
+- python scripts/aggregate_stats.py
