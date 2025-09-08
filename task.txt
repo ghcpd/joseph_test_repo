@@ -10,7 +10,7 @@ Project Structure:
 - scripts/load_data.py       # imports JSONL data
 
 Current behaviors and bugs:
-1. Running `scripts/init_db.py` multiple times may cause duplicate entries in the database.
+1. Running `scripts/init_db.py` and `load_data.py` multiple times may cause duplicate entries in the database.
 2. `load_data.py` does not check for existing data before inserting.
 
 Your tasks:
