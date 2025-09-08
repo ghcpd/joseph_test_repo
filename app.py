@@ -103,9 +103,8 @@ def load_all_data() -> None:
     build_indexes()
 
 
-@app.before_first_request
-def _startup() -> None:
-    load_all_data()
+# Load data at import time for Flask >=3.1
+load_all_data()
 
 
 def dataset_metadata() -> List[Dict[str, Any]]:
