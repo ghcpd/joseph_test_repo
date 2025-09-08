@@ -1,28 +1,40 @@
-generate a scientific calculator app
+sqlite bug fixing and function adding
 
-You need to implement a scientific calculator desktop application in Python with a graphical user interface.
-Requirements:
-1. Framework: Use either Tkinter (preferred, since it comes with Python) or PyQt.
-2. No eval: The calculator must not use Python’s built-in eval function for expression evaluation.
-3. Features:
-    Support the four basic arithmetic operations: +, -, *, /
-    Support parentheses for grouping operations
-    Support floating-point numbers and negative numbers
-    Support scientific functions:
-        sin(x), cos(x), tan(x)
-        log(x) (base 10), ln(x) (natural log)
-        sqrt(x) (square root), ^ (exponentiation)
-    Include memory functions: M+, M-, MR, MC
-    Include a history panel that displays the last 10 calculations
-4. User Interface:
-    Buttons for digits (0–9), operators, parentheses, scientific functions, and memory functions
-    A display area for input and results
-    Layout should be clear and user-friendly (scientific calculator style)
-5. Error Handling:
-    Handle division by zero, invalid input, and malformed expressions gracefully (show an error message instead of crashing).
-6. Code Quality:
-    Organize the code into separate modules (parser, calculator, ui)
-    Add comments and docstrings for clarity
-Bonus (optional, for extra points):
-    Add keyboard input support in addition to buttons.
-    Make the UI more visually appealing (themes, styling).
+You are a Python agent. Your task is to work with an existing SQLite project structured as follows:
+
+Project Structure:
+- database/tracker.db        # SQLite database file
+- input_data/pr_detail.jsonl
+- input_data/issue_detail.jsonl
+- scripts/init_db.py         # initializes database
+- scripts/load_data.py       # imports JSONL data
+
+Current behaviors and bugs:
+1. Running `scripts/init_db.py` multiple times may cause duplicate entries in the database.
+2. `load_data.py` does not check for existing data before inserting.
+
+Your tasks:
+
+1. **Fix the bugs:**
+   - Ensure that running `init_db.py` multiple times does not create duplicate table entries.
+   - Modify `load_data.py` to avoid inserting duplicate PRs or Issues.
+
+2. **Add new complex features:**
+   - Implement a script `scripts/show_table.py` that can display the content of any table.
+     Usage: `python scripts/show_table.py <table_name>` should print all rows in that table in a readable format.
+   - Implement a script `scripts/aggregate_stats.py` that:
+       - Counts the number of PRs and Issues per repo.
+       - Counts how many Issues each PR fixes (based on `Fixes #<issue_number>` in PR body).
+       - Displays results in a formatted table.
+
+3. **Requirements:**
+   - All scripts must be safe to run multiple times.
+   - Use only the Python standard library.
+   - Keep code clean, readable, and well-commented.
+   - Ensure scripts work on the existing database and can handle additional PRs/Issues in the future.
+
+Deliverables:
+- Modified `init_db.py` and `load_data.py` with bug fixes.
+- New scripts: `show_table.py` and `aggregate_stats.py`.
+- Example commands showing how to use all scripts.
+- Any helper functions should be included in the scripts or a separate `utils.py`.
