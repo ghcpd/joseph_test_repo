@@ -117,7 +117,7 @@ def shunting_yard(tokens: List[Tuple[str, Union[str, float]]]) -> List[Tuple[str
         if tok_type == NUMBER:
             output.append((NUMBER, tok_val))
         elif tok_type == FUNCTION:
-            output.append((FUNCTION, tok_val)) if tok_val == 'neg' else stack.append((FUNCTION, tok_val))
+            stack.append((FUNCTION, tok_val))
         elif tok_type == COMMA:
             while stack and stack[-1][0] != LPAREN:
                 output.append(stack.pop())
