@@ -23,13 +23,13 @@ def insert_data():
 
     for pr in prs:
         c.execute('''
-        INSERT INTO pr (repo_name, pr_number, title, body)
+        INSERT OR IGNORE INTO pr (repo_name, pr_number, title, body)
         VALUES (?, ?, ?, ?)
         ''', (pr['repo_name'], pr['pr_number'], pr.get('title', ''), pr.get('body', '')))
 
     for issue in issues:
         c.execute('''
-        INSERT INTO issue (repo_name, issue_number, title, body)
+        INSERT OR IGNORE INTO issue (repo_name, issue_number, title, body)
         VALUES (?, ?, ?, ?)
         ''', (issue['repo_name'], issue['issue_number'], issue.get('title', ''), issue.get('body', '')))
 
