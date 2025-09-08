@@ -22,16 +22,22 @@ def insert_data():
     issues = load_jsonl("issue_detail.jsonl")
 
     for pr in prs:
-        c.execute('''
-        INSERT INTO pr (repo_name, pr_number, title, body)
-        VALUES (?, ?, ?, ?)
-        ''', (pr['repo_name'], pr['pr_number'], pr.get('title', ''), pr.get('body', '')))
+        # Check for existing PR to avoid duplicates
+        c.execute("SELECT 1 FROM pr WHERE repo_name=? AND pr_number=?", (pr['repo_name'], pr['pr_number']))
+        if not c.fetchone():
+            c.execute('''
+            INSERT INTO pr (repo_name, pr_number, title, body)
+            VALUES (?, ?, ?, ?)
+            ''', (pr['repo_name'], pr['pr_number'], pr.get('title', ''), pr.get('body', '')))
 
     for issue in issues:
-        c.execute('''
-        INSERT INTO issue (repo_name, issue_number, title, body)
-        VALUES (?, ?, ?, ?)
-        ''', (issue['repo_name'], issue['issue_number'], issue.get('title', ''), issue.get('body', '')))
+        # Check for existing Issue to avoid duplicates
+        c.execute("SELECT 1 FROM issue WHERE repo_name=? AND issue_number=?", (issue['repo_name'], issue['issue_number']))
+        if not c.fetchone():
+            c.execute('''
+            INSERT INTO issue (repo_name, issue_number, title, body)
+            VALUES (?, ?, ?, ?)
+            ''', (issue['repo_name'], issue['issue_number'], issue.get('title', ''), issue.get('body', '')))
 
     conn.commit()
     conn.close()
