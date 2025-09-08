@@ -29,6 +29,14 @@ def init_db():
     )
     ''')
 
+    # Remove duplicates if any (keep the earliest row per unique key)
+    c.execute("DELETE FROM pr WHERE rowid NOT IN (SELECT MIN(rowid) FROM pr GROUP BY repo_name, pr_number)")
+    c.execute("DELETE FROM issue WHERE rowid NOT IN (SELECT MIN(rowid) FROM issue GROUP BY repo_name, issue_number)")
+
+    # Enforce uniqueness to prevent future duplicates
+    c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_pr_repo_number ON pr(repo_name, pr_number)")
+    c.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_issue_repo_number ON issue(repo_name, issue_number)")
+
     conn.commit()
     conn.close()
     print(f"Database initialized at {DB_PATH}")
