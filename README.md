@@ -31,7 +31,7 @@ Key routes:
    pip install -r requirements.txt
 3. Run the app:
    python app.py
-4. Open http://127.0.0.1:5000/ in your browser
+4. Open http://127.0.0.1:5055/ in your browser (default port can be changed with PORT env var)
 
 ## Notes
 - Large datasets are loaded into memory at startup. Ensure sufficient memory.
