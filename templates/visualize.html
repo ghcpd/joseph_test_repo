@@ -33,7 +33,7 @@
 <script>
 const repoFilter = {{ (repo or '') | tojson }};
 async function getAgg(){
-  const url = '/api/aggregations' + (repoFilter ? ('?repo=' + encodeURIComponent(repoFilter)) : '');
+  const url = '/agg' + (repoFilter ? ('?repo=' + encodeURIComponent(repoFilter)) : '');
   const res = await fetch(url); return await res.json();
 }
 

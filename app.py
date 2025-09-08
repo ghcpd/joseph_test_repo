@@ -265,7 +265,7 @@ def visualize():
     return render_template('visualize.html', repo=repo)
 
 
-@app.route('/api/aggregations')
+@app.route('/agg')
 def api_aggregations():
     repo = request.args.get('repo')
     data = compute_aggregations(repo)
