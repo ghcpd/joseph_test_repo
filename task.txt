@@ -1,3 +1,5 @@
+Generate a flask app to process and visualize the data
+
 You are given four JSONL files:
 
 1. ./input_data/pr_issue_single.jsonl
@@ -20,9 +22,8 @@ You can refer to integrate_pr_issue.py to find the connection of four input file
 
 **Task:**
 Build a Flask-based web application that:
-0. **build and activate a python3.12 venv**
-- Following operation will use this venv.
-- Install all required libraries for it.
+0. **Provide a requirement.txt**
+- It Should install all required libraries for the task.
 
 1. **Data Loading**
 - Load all four JSONL files into memory at startup.
