@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.sqlite
+.db_*
+*.log
+*.pot
+*.pyc
+__pypackages__/
+.env
+venv/
+.env.local
+
+# Django
+staticfiles/
+media/
+
+# SQLite
+/db.sqlite3
