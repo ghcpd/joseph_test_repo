@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Registration</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #222222;
+      --muted: #666666;
+      --primary: #2563eb;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --card: #f5f5f5;
+    }
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --fg: #e2e8f0;
+      --muted: #94a3b8;
+      --primary: #60a5fa;
+      --danger: #f87171;
+      --success: #34d399;
+      --card: #1e293b;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--fg); margin: 0; padding: 20px; transition: background 0.3s, color 0.3s; }
+    h1 { margin-top: 0; }
+    .container { max-width: 900px; margin: 0 auto; }
+    .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; flex-wrap: wrap; }
+    input, select, button { padding: 8px 10px; border-radius: 6px; border: 1px solid var(--muted); background: var(--card); color: var(--fg); }
+    button { background: var(--primary); border: none; color: white; cursor: pointer; }
+    button:disabled { opacity: 0.7; cursor: not-allowed; }
+    .danger { background: var(--danger); }
+    .success { background: var(--success); }
+
+    .form { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 10px; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 10px; border-bottom: 1px solid var(--muted); }
+    th { text-align: left; }
+
+    .counter { font-size: 0.9em; color: var(--muted); }
+
+    .toast { position: fixed; top: 20px; right: 20px; background: var(--card); color: var(--fg); padding: 10px 14px; border: 1px solid var(--muted); border-radius: 8px; opacity: 0; transform: translateY(-10px); transition: opacity .2s, transform .2s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    .loading { display: none; }
+    .loading.show { display: inline-block; }
+
+    .fade-in { animation: fadeIn .25s ease-out; }
+    @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+    .fade-out { animation: fadeOut .25s ease-in forwards; }
+    @keyframes fadeOut { to { opacity: 0; height: 0; padding: 0; margin: 0; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="controls">
+      <h1 style="flex:1">User Registration</h1>
+      <button id="themeToggle" title="Toggle theme">Toggle Theme</button>
+    </div>
+
+    <form id="userForm" class="form">
+      <input type="text" id="name" placeholder="Name" required />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="number" id="age" placeholder="Age (10-120)" min="10" max="120" required />
+      <select id="gender" required>
+        <option value="">Select gender</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+      </select>
+      <button type="submit" id="registerBtn">Register</button>
+      <span id="loading" class="loading">Loading...</span>
+    </form>
+
+    <div class="controls">
+      <input type="text" id="search" placeholder="Search by name" />
+      <select id="sort">
+        <option value="asc">Age Ascending</option>
+        <option value="desc">Age Descending</option>
+      </select>
+      <span class="counter" id="counter">0 users</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Age</th>
+          <th>Gender</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="usersBody"></tbody>
+    </table>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const api = {
+      async list() {
+        const resp = await fetch('/api/users/?page=1&size=1000');
+        if (!resp.ok) throw new Error('Failed to fetch users');
+        return resp.json();
+      },
+      async create(payload) {
+        const resp = await fetch('/api/users/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw data;
+        return data;
+      },
+      async delete(id) {
+        const resp = await fetch(`/api/users/${id}/`, { method: 'DELETE' });
+        if (!resp.ok) throw new Error('Delete failed');
+      }
+    };
+
+    const state = { users: [], filtered: [] };
+
+    function showToast(message, type = 'info') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.style.borderColor = type === 'error' ? 'var(--danger)' : type === 'success' ? 'var(--success)' : 'var(--muted)';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function setLoading(isLoading) {
+      document.getElementById('loading').classList.toggle('show', isLoading);
+      document.getElementById('registerBtn').disabled = isLoading;
+    }
+
+    function validateForm({ name, email, age, gender }) {
+      if (!name || !name.trim()) { alert('Name cannot be empty'); return false; }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) { alert('Email is invalid'); return false; }
+      const ageNum = Number(age);
+      if (!Number.isInteger(ageNum) || ageNum < 10 || ageNum > 120) { alert('Age must be between 10 and 120'); return false; }
+      if (!['Male','Female','Other'].includes(gender)) { alert('Gender must be selected'); return false; }
+      return true;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('usersBody');
+      tbody.innerHTML = '';
+      state.filtered.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.classList.add('fade-in');
+        tr.innerHTML = `
+          <td>${u.name}</td>
+          <td>${u.email}</td>
+          <td>${u.age}</td>
+          <td>${u.gender}</td>
+          <td><button class="danger" data-id="${u.id}">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('counter').textContent = `${state.filtered.length} user${state.filtered.length === 1 ? '' : 's'}`;
+    }
+
+    function applyFilters() {
+      const q = document.getElementById('search').value.toLowerCase();
+      const sort = document.getElementById('sort').value;
+      state.filtered = state.users.filter(u => u.name.toLowerCase().includes(q));
+      state.filtered.sort((a, b) => sort === 'asc' ? a.age - b.age : b.age - a.age);
+      renderTable();
+    }
+
+    async function fetchUsers() {
+      try {
+        setLoading(true);
+        const data = await api.list();
+        state.users = data.users || [];
+        applyFilters();
+      } catch (e) {
+        showToast('Failed to load users', 'error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    document.getElementById('usersBody').addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-id]');
+      if (!btn) return;
+      const id = btn.getAttribute('data-id');
+      if (!confirm('Are you sure you want to delete this user?')) return;
+      const tr = btn.closest('tr');
+      try {
+        await api.delete(id);
+        tr.classList.add('fade-out');
+        setTimeout(() => { state.users = state.users.filter(u => u.id != id); applyFilters(); }, 250);
+        showToast('User deleted', 'success');
+      } catch {
+        showToast('Delete failed', 'error');
+      }
+    });
+
+    document.getElementById('userForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        age: document.getElementById('age').value,
+        gender: document.getElementById('gender').value,
+      };
+      if (!validateForm(payload)) return;
+      try {
+        setLoading(true);
+        const user = await api.create(payload);
+        state.users.unshift(user);
+        applyFilters();
+        document.getElementById('userForm').reset();
+        showToast('User registered', 'success');
+      } catch (err) {
+        const msg = err?.errors ? Object.values(err.errors)[0] : 'Registration failed';
+        alert(msg);
+        showToast('Registration failed', 'error');
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    document.getElementById('search').addEventListener('input', applyFilters);
+    document.getElementById('sort').addEventListener('change', applyFilters);
+
+    // Theme toggle with persistence
+    const themeToggle = document.getElementById('themeToggle');
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+    themeToggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'light' ? 'dark' : 'light';
+      applyTheme(next);
+      localStorage.setItem('theme', next);
+    });
+
+    fetchUsers();
+  </script>
+</body>
+</html>
