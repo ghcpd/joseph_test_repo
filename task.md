@@ -1,88 +1,65 @@
-## 🟦 Frontend Card Display Project (Read-Only, Repo & Issue Title)
+# 🔹 Frontend webpage form data format Validation
 
-You are given a clean environment with **web development enabled**.
-Your task is to create a **frontend-only application** with django to display records from a JSON dataset in card-style boxes.
-dataset is ./data/merged_data.jsonl
-Each record is a GitHub issue/PR entry with the following fields:
+### 1. **Backend (Django + SQLite)**
 
-```json
-{
-    "repo": "0xERR0R/blocky",
-    "issue_number": 1585,
-    "issue_title": "...",
-    "issue_body": "...",
-    "pull_number": 1593,
-    "created_at": "2024-08-30T22:44:53Z",
-    "base_commit_sha": "...",
-    "merge_commit_sha": "...",
-    "instance_id": "...",
-    "pr_url": "...",
-    "issue_url": "..."
-}
-```
+* Use **SQLite** as the database.
+* Create a Django project and one app.
+* Implement a `User` model with fields:
+
+  * `name` (CharField, required)
+  * `email` (EmailField, unique)
+  * `age` (IntegerField)
+  * `gender` (CharField, choices = \[Male, Female, Other])
+* Expose REST API endpoints:
+
+  * `GET /api/users/` → return all users (support pagination with `?page=1&size=10`)
+  * `POST /api/users/` → create a new user (validate input, return 400 on invalid data)
+  * `DELETE /api/users/<id>/` → delete a user
 
 ---
 
-### 1. **Card Display**
+### 2. **Frontend (index.html)**
 
-* Each card should display **only**:
+* Page contains:
 
-  * `repo`
-  * `issue_title`
-* Clicking a card opens a **detail view** showing all the record fields (`issue_body`, `pull_number`, `created_at`, etc.)
+  * **Form** with Name, Email, Age, Gender, and Register button
+  * **Table** displaying registered users, each row with a Delete button
 
----
+* Required features:
 
-### 2. **Pagination**
+  * **Client-side validation (must-have):**
 
-* Default **20 cards per page**
-* Users can choose page size (10/20/50)
-* Include **Next / Previous / First / Last page controls**
-* Display **current page / total pages**
-
----
-
-### 3. **Responsive Layout**
-
-* Cards should **rearrange automatically** depending on browser width
-* Use **CSS Grid or Flexbox**
-* Number of cards per row should adapt to screen size
+    * Name cannot be empty
+    * Email must be valid format
+    * Age must be between 10–120
+    * Gender must be selected
+    * ❗ If input is invalid, show a **popup alert** specifying which field is wrong (e.g., “Email is invalid” or “Age must be between 10 and 120”).
+  * **Search bar** to filter users by name
+  * **Sort dropdown** for age ascending/descending
+  * **Counter** showing number of displayed users
+  * **Delete confirmation** dialog before removing a row
 
 ---
 
-### 4. **Style Customization**
+### 3. **UI/UX Enhancements**
 
-* Provide a **left-side settings menu** to allow users to:
+* **Dark/Light theme toggle** (save preference in `localStorage`, persist after refresh).
+* **Notifications** (toast/alert) for success, error, or validation failure.
+* **Loading indicator** when fetching or submitting data.
+* **Animations:**
 
-  * Choose **card text color**
-  * Choose **card background color**
-* Settings apply immediately to all visible cards
-* Menu should be **fixed on the left side** and collapsible if necessary
-
----
-
-### 5. **Interaction**
-
-* Clicking a card shows full record details (modal or separate section)
-* Pagination updates visible cards **without page reload**
-* Style changes update all cards in real time
+  * Fade-in for new rows
+  * Fade-out for deleted rows
+  * Smooth transitions for theme switching
 
 ---
 
-### 6. **Validation**
+### 4. **Validation & Behavior**
 
-Ensure that:
+* Client-side validation **must run before submission**, and popup alerts must clearly describe the errors.
+* Successfully submitted users should appear immediately in the table.
+* Search, sort, and counter must update dynamically.
+* Delete action requires confirmation and updates the counter correctly.
+* Theme toggle persists after page reload.
 
-* Cards display `repo` and `issue_title` correctly
-* Pagination works and updates visible cards correctly
-* Layout responds dynamically to browser resizing
-* Style changes from the left menu are applied immediately
-* Card detail view shows all fields on click
 
----
-
-### ✅ Notes
-
-* Input data is **read-only JSON**; no backend modification is required
-* Focus is on **frontend layout, interactivity, pagination, styling, and responsiveness**
-* Use HTML, CSS, and JavaScript (vanilla or libraries)
