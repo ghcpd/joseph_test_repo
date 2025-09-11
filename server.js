@@ -18,6 +18,13 @@ const server = http.createServer(async (req, res) => {
       }
       const target = `https://api.github.com/repos/${owner}/${repo}/${resource}${search}`;
       const gh = await fetch(target, { headers: { 'Accept': 'application/vnd.github+json', 'User-Agent': 'ghcpd-repo-viewer' } });
+      if (gh.status === 403) {
+        const samplePath = path.join(publicDir, `sample-${resource}.json`);
+        if (fs.existsSync(samplePath)) {
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          return res.end(fs.readFileSync(samplePath));
+        }
+      }
       const data = await gh.text();
       res.writeHead(gh.status, { 'Content-Type': 'application/json' });
       res.end(data);
