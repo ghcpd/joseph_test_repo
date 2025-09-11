@@ -124,7 +124,7 @@ def apply_filters(img: Image.Image, opts: Options) -> Image.Image:
 def apply_watermark(img: Image.Image, text: str, pos: str) -> Image.Image:
     if not text:
         return img
-    out = img.copy()
+    out = img.copy().convert("RGB")
     draw = ImageDraw.Draw(out)
     try:
         font = ImageFont.load_default()
