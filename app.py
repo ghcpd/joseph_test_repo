@@ -1,8 +1,12 @@
 import os
 import sys
 import traceback
-from tkinter import Tk, Label, Entry, Button, Checkbutton, IntVar, filedialog, StringVar, OptionMenu, Scale, HORIZONTAL, Toplevel, messagebox
-from tkinter import ttk
+try:
+    from tkinter import Tk, Label, Entry, Button, Checkbutton, IntVar, filedialog, StringVar, OptionMenu, Scale, HORIZONTAL, Toplevel, messagebox
+    from tkinter import ttk
+    TK_AVAILABLE = True
+except Exception:
+    TK_AVAILABLE = False
 from PIL import Image, ImageOps, ImageFilter, ImageEnhance, ImageDraw
 import numpy as np
 
@@ -163,7 +167,7 @@ def process_image(img_path: str,
 
 
 class ImageProcessorApp:
-    def __init__(self, root: Tk):
+    def __init__(self, root):
         self.root = root
         root.title("Automated Image Processing")
 
@@ -361,7 +365,10 @@ class ImageProcessorApp:
 
 
 def main():
-    # If running in an environment without a display, inform user gracefully
+    # If running in an environment without a display, fallback to headless info
+    if not TK_AVAILABLE:
+        print("Tkinter not available; GUI cannot be started in this environment.")
+        return 0
     try:
         root = Tk()
     except Exception as e:
