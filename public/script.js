@@ -33,16 +33,21 @@ async function loadList(){
   if(listCache.has(key)){
     items = listCache.get(key);
   } else {
-    const endpoint = type === 'Issues' ? `/api/issues?repo=${encodeURIComponent(repo)}` : `/api/prs?repo=${encodeURIComponent(repo)}`;
-    const data = await fetchJSON(endpoint);
-    items = data.map(i => ({
-      number: i.number,
-      title: i.title,
-      user: i.user?.login,
-      state: i.state,
-      labels: i.labels || []
-    }));
-    listCache.set(key, items);
+    try{
+      const endpoint = type === 'Issues' ? `/api/issues?repo=${encodeURIComponent(repo)}` : `/api/prs?repo=${encodeURIComponent(repo)}`;
+      const data = await fetchJSON(endpoint);
+      items = data.map(i => ({
+        number: i.number,
+        title: i.title,
+        user: i.user?.login,
+        state: i.state,
+        labels: i.labels || []
+      }));
+      listCache.set(key, items);
+    }catch(e){
+      alert(`Error: ${e.message}`);
+      return;
+    }
   }
 
   for(const it of items){
