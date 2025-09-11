@@ -15,10 +15,9 @@ function parseRepoUrl(url){
 async function fetchItems(owner, repo, type){
   const key = `${owner}/${repo}/${type}`;
   if(cache.has(key)) return cache.get(key);
-  const endpoint = type === 'Pull Requests'
-    ? `https://api.github.com/repos/${owner}/${repo}/pulls?per_page=50&state=all`
-    : `https://api.github.com/repos/${owner}/${repo}/issues?per_page=50&state=all`;
-  const res = await fetch(endpoint, { headers: { 'Accept': 'application/vnd.github+json' }});
+  const resource = type === 'Pull Requests' ? 'pulls' : 'issues';
+  const endpoint = `/api/repos/${owner}/${repo}/${resource}?per_page=50&state=all`;
+  const res = await fetch(endpoint);
   if(!res.ok) throw new Error(`GitHub API error ${res.status}`);
   const data = await res.json();
   cache.set(key, data);
