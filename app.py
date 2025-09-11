@@ -130,7 +130,8 @@ def apply_watermark(img: Image.Image, text: str, pos: str) -> Image.Image:
         font = ImageFont.load_default()
     except Exception:
         font = None
-    text_w, text_h = draw.textsize(text, font=font)
+    bbox = draw.textbbox((0, 0), text, font=font)
+    text_w, text_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
     margin = 10
     W, H = out.size
     pos_map = {
