@@ -1,77 +1,66 @@
-🔹 Interactive GitHub PR/Issue Viewer (with Node.js Proxy)
+# 🔹 Interactive GitHub PR/Issue Viewer (with Node.js Proxy)
 
-Goal: Build an interactive test scenario to fetch and display GitHub PRs or Issues directly from GitHub API, using a Node.js server to solve CORS issues. No simulated data.
+**Goal:** Build an interactive test scenario to fetch and display GitHub PRs or Issues **directly from GitHub API**, using a Node.js server to solve CORS issues. No simulated data.
 
-Setup:
+**Setup:**
 
-Use Node.js to run a local server: node server.js
+1. Use **Node.js** to run a local server: `node server.js`
+2. The server will act as a proxy for GitHub API requests to avoid CORS restrictions.
+3. Frontend interacts with the Node.js server to fetch data.
 
-The server will act as a proxy for GitHub API requests to avoid CORS restrictions.
+**Steps:**
 
-Frontend interacts with the Node.js server to fetch data.
+1. **Input Repository**
 
-Steps:
+   * User provides a GitHub repository URL (e.g., `https://github.com/user/repo`)
+   * Validate the URL format. If invalid, show a popup error specifying the problem.
 
-Input Repository
+2. **Select Data Type**
 
-User provides a GitHub repository URL (e.g., https://github.com/user/repo)
+   * Provide a dropdown menu: `["Pull Requests", "Issues"]`
+   * User selects one.
 
-Validate the URL format. If invalid, show a popup error specifying the problem.
+3. **Fetch List via Node Proxy**
 
-Select Data Type
+   * Frontend calls the Node.js server, which fetches the PRs/Issues from GitHub API.
+   * Display a second dropdown with **titles** (or numbers + titles) of PRs/Issues.
 
-Provide a dropdown menu: ["Pull Requests", "Issues"]
+4. **Show Details**
 
-User selects one.
+   * When a PR/Issue is selected, display its details on the page:
 
-Fetch List via Node Proxy
+     * Title
+     * Author
+     * Status (open/closed/merged)
+     * Created date / Updated date
+     * Body content
 
-Frontend calls the Node.js server, which fetches the PRs/Issues from GitHub API.
+5. **Extra Validation (Optional for Agent Testing)**
 
-Display a second dropdown with titles (or numbers + titles) of PRs/Issues.
+   * Limit API calls to avoid exceeding GitHub rate limits.
+   * Allow user to select multiple PRs/Issues and show combined summary.
+   * Highlight PRs/Issues that meet certain conditions (e.g., have label `bug`).
 
-Show Details
+---
 
-When a PR/Issue is selected, display its details on the page:
+### **UI Components**
 
-Title
+* **Input field**: GitHub repo URL
+* **Dropdown #1**: PR or Issue selection
+* **Dropdown #2**: List of PRs/Issues fetched from API
+* **Detail panel**: Display selected PR/Issue info
 
-Author
+---
 
-Status (open/closed/merged)
+### **Node.js Server Requirements**
 
-Created date / Updated date
+* Create a simple **Express.js** server in `server.js`.
+* Server routes example:
 
-Body content
+  ```js
+  // GET /api/prs?repo=user/repo
+  // GET /api/issues?repo=user/repo
+  ```
+* Server should fetch GitHub API data and return JSON to frontend.
+* Handle errors and rate limits gracefully.
 
-Extra Validation (Optional for Agent Testing)
-
-Limit API calls to avoid exceeding GitHub rate limits.
-
-Allow user to select multiple PRs/Issues and show combined summary.
-
-Highlight PRs/Issues that meet certain conditions (e.g., have label bug).
-
-UI Components
-
-Input field: GitHub repo URL
-
-Dropdown #1: PR or Issue selection
-
-Dropdown #2: List of PRs/Issues fetched from API
-
-Detail panel: Display selected PR/Issue info
-
-Node.js Server Requirements
-
-Create a simple Express.js server in server.js.
-
-Server routes example:
-
-// GET /api/prs?repo=user/repo
-// GET /api/issues?repo=user/repo
-
-
-Server should fetch GitHub API data and return JSON to frontend.
-
-Handle errors and rate limits gracefully.
