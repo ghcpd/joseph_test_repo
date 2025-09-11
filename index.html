@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub PR/Issue Viewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    label { display: block; margin-top: 10px; }
+    select, input { padding: 6px; margin-top: 4px; }
+    #details { margin-top: 20px; border: 1px solid #ccc; padding: 10px; border-radius: 4px; }
+    .highlight { border-color: #e74c3c; }
+    .row { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <h1>GitHub PR/Issue Viewer</h1>
+
+  <label for="repoUrl">Repository URL (e.g., https://github.com/user/repo)</label>
+  <input type="text" id="repoUrl" placeholder="https://github.com/user/repo" size="50" />
+
+  <label for="typeSelect">Select Data Type</label>
+  <select id="typeSelect">
+    <option>Pull Requests</option>
+    <option>Issues</option>
+  </select>
+
+  <div class="row">
+    <button id="fetchBtn">Fetch List</button>
+  </div>
+
+  <label for="itemSelect">Select PR/Issue</label>
+  <select id="itemSelect">
+    <option value="">-- No data --</option>
+  </select>
+
+  <div id="details">
+    <strong>Details will appear here.</strong>
+  </div>
+
+  <script>
+    const repoInput = document.getElementById('repoUrl');
+    const typeSelect = document.getElementById('typeSelect');
+    const fetchBtn = document.getElementById('fetchBtn');
+    const itemSelect = document.getElementById('itemSelect');
+    const detailsEl = document.getElementById('details');
+
+    let lastList = [];
+    let lastRepo = '';
+    let lastType = '';
+
+    function parseRepo(url) {
+      const m = url.trim().match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)(?:\/)?$/i);
+      if (!m) return null;
+      return `${m[1]}/${m[2]}`;
+    }
+
+    function showError(msg) {
+      alert(msg);
+    }
+
+    function formatDate(s) {
+      try {
+        return new Date(s).toLocaleString();
+      } catch {
+        return s;
+      }
+    }
+
+    async function fetchList() {
+      const repo = parseRepo(repoInput.value);
+      if (!repo) {
+        showError('Invalid repository URL. Expected format: https://github.com/owner/repo');
+        return;
+      }
+      lastRepo = repo;
+      lastType = typeSelect.value;
+
+      const endpoint = lastType === 'Pull Requests' ? `/api/prs?repo=${encodeURIComponent(repo)}` : `/api/issues?repo=${encodeURIComponent(repo)}`;
+
+      itemSelect.innerHTML = '<option value="">Loading...</option>';
+      try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data && data.error ? data.error : 'Fetch failed');
+        }
+        lastList = Array.isArray(data) ? data : [];
+        if (lastList.length === 0) {
+          itemSelect.innerHTML = '<option value="">No items found</option>';
+          detailsEl.innerHTML = '<strong>No items available.</strong>';
+          return;
+        }
+        itemSelect.innerHTML = '';
+        for (const item of lastList) {
+          const number = item.number;
+          const title = item.title || '(no title)';
+          const opt = document.createElement('option');
+          opt.value = String(number);
+          opt.textContent = `#${number} - ${title}`;
+          itemSelect.appendChild(opt);
+        }
+        // Auto-load the first item's details
+        itemSelect.selectedIndex = 0;
+        await fetchDetails();
+      } catch (e) {
+        showError(e.message || 'Failed to fetch list');
+      }
+    }
+
+    async function fetchDetails() {
+      const number = itemSelect.value;
+      if (!number) return;
+      const isPR = lastType === 'Pull Requests';
+      const endpoint = isPR ? `/api/pr?repo=${encodeURIComponent(lastRepo)}&number=${encodeURIComponent(number)}` : `/api/issue?repo=${encodeURIComponent(lastRepo)}&number=${encodeURIComponent(number)}`;
+      try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data && data.error ? data.error : 'Fetch failed');
+        }
+        const title = data.title || '(no title)';
+        const author = data.user && data.user.login ? data.user.login : 'unknown';
+        let status = data.state;
+        if (isPR && data.merged_at) {
+          status = 'merged';
+        }
+        const created = data.created_at ? formatDate(data.created_at) : '-';
+        const updated = data.updated_at ? formatDate(data.updated_at) : '-';
+        const body = data.body ? data.body : '';
+        const hasBug = (data.labels || []).some(l => (l.name || '').toLowerCase() === 'bug');
+
+        detailsEl.className = hasBug ? 'highlight' : '';
+        detailsEl.innerHTML = `
+          <div><strong>Title:</strong> ${title}</div>
+          <div><strong>Author:</strong> ${author}</div>
+          <div><strong>Status:</strong> ${status}</div>
+          <div><strong>Created:</strong> ${created}</div>
+          <div><strong>Updated:</strong> ${updated}</div>
+          <div><strong>Body:</strong><br/><pre style="white-space: pre-wrap;">${body.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))}</pre></div>
+        `;
+      } catch (e) {
+        showError(e.message || 'Failed to fetch details');
+      }
+    }
+
+    fetchBtn.addEventListener('click', fetchList);
+    itemSelect.addEventListener('change', fetchDetails);
+  </script>
+</body>
+</html>
