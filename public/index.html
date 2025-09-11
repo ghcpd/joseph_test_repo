@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GitHub PRs/Issues Viewer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>GitHub PRs/Issues Viewer</h1>
+  <div class="row">
+    <input id="repoUrl" placeholder="https://github.com/user/repo"/>
+    <button id="loadBtn">Load</button>
+  </div>
+  <div class="row">
+    <label for="typeSelect">Select:</label>
+    <select id="typeSelect">
+      <option>Pull Requests</option>
+      <option>Issues</option>
+    </select>
+  </div>
+  <div class="row">
+    <label for="listSelect">Items:</label>
+    <select id="listSelect" multiple size="8"></select>
+  </div>
+  <div id="details"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
