@@ -1,65 +1,46 @@
-# 🔹 Frontend webpage form data format Validation
+# 🔹 Interactive to fetching and displaying GitHub PRs or Issues
 
-### 1. **Backend (Django + SQLite)**
+**Goal:** Build an interactive test scenario to fetch and display GitHub PRs or Issues.
 
-* Use **SQLite** as the database.
-* Create a Django project and one app.
-* Implement a `User` model with fields:
+**Steps:**
 
-  * `name` (CharField, required)
-  * `email` (EmailField, unique)
-  * `age` (IntegerField)
-  * `gender` (CharField, choices = \[Male, Female, Other])
-* Expose REST API endpoints:
+1. **Input Repository**
 
-  * `GET /api/users/` → return all users (support pagination with `?page=1&size=10`)
-  * `POST /api/users/` → create a new user (validate input, return 400 on invalid data)
-  * `DELETE /api/users/<id>/` → delete a user
+   * User provides a GitHub repository URL (e.g., `https://github.com/user/repo`)
+   * Validate the URL format. If invalid, show a popup error specifying the problem.
 
----
+2. **Select Data Type**
 
-### 2. **Frontend (index.html)**
+   * Provide a dropdown menu: `["Pull Requests", "Issues"]`
+   * User selects one.
 
-* Page contains:
+3. **Fetch List**
 
-  * **Form** with Name, Email, Age, Gender, and Register button
-  * **Table** displaying registered users, each row with a Delete button
+   * Fetch the list of PRs or Issues from GitHub via GitHub API
+   * Display a second dropdown with **titles** (or numbers + titles) of PRs/Issues
 
-* Required features:
+4. **Show Details**
 
-  * **Client-side validation (must-have):**
+   * When a PR/Issue is selected, display its details on the page:
 
-    * Name cannot be empty
-    * Email must be valid format
-    * Age must be between 10–120
-    * Gender must be selected
-    * ❗ If input is invalid, show a **popup alert** specifying which field is wrong (e.g., “Email is invalid” or “Age must be between 10 and 120”).
-  * **Search bar** to filter users by name
-  * **Sort dropdown** for age ascending/descending
-  * **Counter** showing number of displayed users
-  * **Delete confirmation** dialog before removing a row
+     * Title
+     * Author
+     * Status (open/closed/merged)
+     * Created date / Updated date
+     * Body content
+
+5. **Extra Validation (Optional for Agent Testing)**
+
+   * Limit API calls to avoid exceeding rate limits
+   * Allow user to select multiple PRs/Issues and show combined summary
+   * Highlight PRs/Issues that meet certain conditions (e.g., have label `bug`)
 
 ---
 
-### 3. **UI/UX Enhancements**
+### **UI Components**
 
-* **Dark/Light theme toggle** (save preference in `localStorage`, persist after refresh).
-* **Notifications** (toast/alert) for success, error, or validation failure.
-* **Loading indicator** when fetching or submitting data.
-* **Animations:**
-
-  * Fade-in for new rows
-  * Fade-out for deleted rows
-  * Smooth transitions for theme switching
-
----
-
-### 4. **Validation & Behavior**
-
-* Client-side validation **must run before submission**, and popup alerts must clearly describe the errors.
-* Successfully submitted users should appear immediately in the table.
-* Search, sort, and counter must update dynamically.
-* Delete action requires confirmation and updates the counter correctly.
-* Theme toggle persists after page reload.
-
+* **Input field**: GitHub repo URL
+* **Dropdown #1**: PR or Issue selection
+* **Dropdown #2**: List of PRs/Issues
+* **Detail panel**: Display selected PR/Issue info
 
