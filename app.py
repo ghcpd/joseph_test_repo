@@ -182,8 +182,9 @@ class App:
         root.title("Image Processor")
 
         # Paths
-        self.input_var = tk.StringVar()
-        self.output_var = tk.StringVar()
+        base = "/home/runner/work/joseph_test_repo/joseph_test_repo"
+        self.input_var = tk.StringVar(value=os.path.join(base, "input"))
+        self.output_var = tk.StringVar(value=os.path.join(base, "output"))
 
         row = 0
         tk.Label(root, text="Input Folder:").grid(row=row, column=0, sticky="w")
