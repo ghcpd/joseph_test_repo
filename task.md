@@ -64,3 +64,17 @@
 * Server should fetch GitHub API data and return JSON to frontend.
 * Handle errors and rate limits gracefully.
 
+
+
+## How to run
+
+- Install dependencies: `npm install`
+- Start the server: `npm start`
+- Open http://localhost:3000 in your browser
+- Enter a repo URL like `https://github.com/ghcpd/joseph_test_repo`
+- Select "Pull Requests" or "Issues", click "Fetch List", then choose an item to view details
+
+Notes:
+- To increase GitHub API rate limits, you can set a token: `export GITHUB_TOKEN=YOUR_TOKEN`
+- The server proxies calls to the GitHub API to avoid CORS and returns JSON.
+- Errors (including rate limits or network blocks) are displayed clearly in the UI.
