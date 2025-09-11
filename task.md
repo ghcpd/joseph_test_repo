@@ -47,3 +47,18 @@ Create a Python program with a GUI to automatically process images in a folder, 
 * Provide simple instructions in GUI or popup
 
 ---
+
+### How to Run
+
+- Install dependencies:
+  - pip install pillow numpy
+- Run the GUI app:
+  - python app.py
+- In the GUI:
+  - Use Browse to select input and output folders
+  - Configure options (resize, rotate/flip, filters, brightness/contrast, watermark, format)
+  - Click Preview First Image to preview transformations
+  - Click Process to batch process all supported images in the input folder
+
+Notes:
+- In environments without Tkinter/display, the GUI cannot be shown. The image processing functions can still be imported and used programmatically via app.process_image.
