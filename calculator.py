@@ -5,95 +5,159 @@ Features: +, -, *, /, parentheses, decimal numbers, history
 """
 
 import tkinter as tk
+from decimal import Decimal, getcontext
 
 history = []  # stores last 5 calculations
+last_key = None
+last_was_result = False
 
 def tokenize(expr):
     """Split expression into numbers, operators, and parentheses"""
     import re
     tokens = re.findall(r'\d+\.\d+|\d+|[()+\-*/]', expr)
+    # Validate that all characters are accounted for (reject invalid sequences like 1..2)
+    compact = expr.replace(' ', '')
+    if ''.join(tokens) != compact:
+        raise ValueError("Error: Invalid characters or number format")
     return tokens
 
 def apply_operator(a, b, op):
-    a = float(a)
-    b = float(b)
     if op == '+':
-        return a + b  # BUG: floating point precision bug
+        return a + b
     elif op == '-':
         return a - b
     elif op == '*':
         return a * b
     elif op == '/':
-        return a / b  # BUG: division by zero not handled
+        if b == 0:
+            raise ValueError("Error: Division by zero")
+        return a / b
     else:
         raise ValueError("Unknown operator")
 
 def evaluate(tokens):
-    """Evaluate tokens without using eval()"""
-    # BUG: operator precedence ignored, left-to-right evaluation
-    stack = []
-    i = 0
-    while i < len(tokens):
-        token = tokens[i]
-        if token == '(':
-            j = i + 1
-            count = 1
-            while j < len(tokens):
-                if tokens[j] == '(':
-                    count += 1
-                elif tokens[j] == ')':
-                    count -= 1
-                if count == 0:
-                    break
-                j += 1
-            if count != 0:
-                return "Error: Mismatched parentheses"  # BUG: nested parentheses may fail
-            val = evaluate(tokens[i+1:j])
-            stack.append(val)
-            i = j
-        elif token in '+-*/':
-            stack.append(token)
-        else:
-            stack.append(token)
-        i += 1
+    """Evaluate tokens using shunting-yard algorithm with Decimal arithmetic"""
+    # Convert to Reverse Polish Notation (RPN)
+    output = []
+    ops = []
+    precedence = {'u+': 3, 'u-': 3, '*': 2, '/': 2, '+': 1, '-': 1}
+    last_was_op = True  # start allows unary at beginning
 
-    result = float(stack[0])
-    idx = 1
-    while idx < len(stack):
-        op = stack[idx]
-        next_val = float(stack[idx+1])
-        result = apply_operator(result, next_val, op)
-        idx += 2
-    return result
+    for token in tokens:
+        if token.isdigit() or ('.' in token):
+            output.append(Decimal(token))
+            last_was_op = False
+        elif token in '+-':
+            # Handle unary +/−
+            op = 'u+' if token == '+' else 'u-'
+            if last_was_op:
+                while ops and ops[-1] != '(' and precedence.get(ops[-1], 0) >= precedence[op]:
+                    output.append(ops.pop())
+                ops.append(op)
+            else:
+                # binary
+                while ops and ops[-1] != '(' and precedence.get(ops[-1], 0) >= precedence[token]:
+                    output.append(ops.pop())
+                ops.append(token)
+                last_was_op = True
+        elif token in '*/':
+            while ops and ops[-1] != '(' and precedence.get(ops[-1], 0) >= precedence[token]:
+                output.append(ops.pop())
+            ops.append(token)
+            last_was_op = True
+        elif token == '(':
+            ops.append(token)
+            last_was_op = True
+        elif token == ')':
+            while ops and ops[-1] != '(':
+                output.append(ops.pop())
+            if not ops or ops[-1] != '(':
+                raise ValueError("Error: Mismatched parentheses")
+            ops.pop()  # remove '('
+            last_was_op = False
+        else:
+            raise ValueError("Error: Unknown token")
+
+    while ops:
+        if ops[-1] == '(':
+            raise ValueError("Error: Mismatched parentheses")
+        output.append(ops.pop())
+
+    # Evaluate RPN
+    stack = []
+    for token in output:
+        if isinstance(token, Decimal):
+            stack.append(token)
+        elif token in ('+', '-', '*', '/'):
+            if len(stack) < 2:
+                raise ValueError("Error: Invalid expression")
+            b = stack.pop()
+            a = stack.pop()
+            stack.append(apply_operator(a, b, token))
+        elif token in ('u+', 'u-'):
+            if not stack:
+                raise ValueError("Error: Invalid expression")
+            a = stack.pop()
+            stack.append(+a if token == 'u+' else -a)
+        else:
+            raise ValueError("Error: Invalid RPN token")
+
+    if len(stack) != 1:
+        raise ValueError("Error: Invalid expression")
+    return stack[0]
 
 def press(key):
-    # BUG: repeated input bug not filtered
+    global last_key, last_was_result
+    if last_was_result and key in '0123456789.(':
+        entry.delete(0, tk.END)
+        last_was_result = False
+    # Debounce repeated digit inputs
+    if key.isdigit() and last_key == key:
+        return
+    # Prevent multiple decimals in the current number
+    if key == '.':
+        current = entry.get()
+        if not current or current[-1] in '+-*/(':
+            entry.insert(tk.END, '0')
+        # find last operator
+        i = len(current) - 1
+        while i >= 0 and current[i] not in '+-*/()':
+            i -= 1
+        segment = current[i+1:]
+        if '.' in segment:
+            return
     entry.insert(tk.END, key)
+    last_key = key
 
 def clear():
-    global history
     entry.delete(0, tk.END)
-    history = []  # BUG: clears history, not just current input
-    update_history()
 
 def calculate():
-    global history
+    global history, last_was_result, last_key
     expr = entry.get()
     try:
         tokens = tokenize(expr)
         result = evaluate(tokens)
+        # Format result: strip trailing zeros where appropriate
+        result_str = str(result.normalize()) if result == result.normalize() else str(result)
+        if '.' in result_str:
+            # Ensure no exponent form
+            result_str = format(result, 'f').rstrip('0').rstrip('.') or '0'
         entry.delete(0, tk.END)
-        entry.insert(0, str(result))
-        # update history
-        if len(history) < 5:
-            history.append((expr, result))
-        else:
-            # BUG: overwrites oldest incorrectly
-            history[0] = (expr, result)
+        entry.insert(0, result_str)
+        # update history FIFO size 5
+        history.append((expr, result_str))
+        if len(history) > 5:
+            history.pop(0)
         update_history()
+        last_was_result = True
+        last_key = None
     except Exception as e:
+        msg = str(e)
         entry.delete(0, tk.END)
-        entry.insert(0, "Error")
+        entry.insert(0, msg if msg.startswith("Error:") else "Error")
+        last_was_result = False
+        last_key = None
 
 def update_history():
     hist_text.delete('1.0', tk.END)
