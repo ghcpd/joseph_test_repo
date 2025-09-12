@@ -4,7 +4,12 @@ BUG INJECTED: DO NOT FIX
 Features: +, -, *, /, parentheses, decimal numbers, history
 """
 
-import tkinter as tk
+try:
+    import tkinter as tk
+except Exception:
+    class _DummyTk:
+        END = None
+    tk = _DummyTk()
 from decimal import Decimal, getcontext
 
 history = []  # stores last 5 calculations
