@@ -96,12 +96,7 @@ def press(key):
     # debounce identical consecutive digits
     if key.isdigit() and text.endswith(key):
         return
-    # prevent multiple decimals in current number segment
-    if key == '.':
-        last_op = max(text.rfind('+'), text.rfind('-'), text.rfind('*'), text.rfind('/'), text.rfind('('))
-        segment = text[last_op+1:] if last_op != -1 else text
-        if '.' in segment:
-            return
+
     entry.insert(tk.END, key)
 
 def clear():
