@@ -160,6 +160,8 @@ def calculate():
         last_key = None
 
 def update_history():
+    if 'hist_text' not in globals() or hist_text is None:
+        return
     hist_text.delete('1.0', tk.END)
     for expr, res in history:
         hist_text.insert(tk.END, f"{expr} = {res}\n")
