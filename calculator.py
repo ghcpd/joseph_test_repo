@@ -5,6 +5,8 @@ Features: +, -, *, /, parentheses, decimal numbers, history
 """
 
 import tkinter as tk
+from decimal import Decimal, DivisionByZero, InvalidOperation
+last_was_result = False
 
 history = []  # stores last 5 calculations
 
@@ -15,85 +17,113 @@ def tokenize(expr):
     return tokens
 
 def apply_operator(a, b, op):
-    a = float(a)
-    b = float(b)
+    a = Decimal(str(a))
+    b = Decimal(str(b))
     if op == '+':
-        return a + b  # BUG: floating point precision bug
+        return a + b
     elif op == '-':
         return a - b
     elif op == '*':
         return a * b
     elif op == '/':
-        return a / b  # BUG: division by zero not handled
+        if b == 0:
+            raise ZeroDivisionError('Division by zero')
+        return a / b
     else:
         raise ValueError("Unknown operator")
 
 def evaluate(tokens):
-    """Evaluate tokens without using eval()"""
-    # BUG: operator precedence ignored, left-to-right evaluation
-    stack = []
-    i = 0
-    while i < len(tokens):
-        token = tokens[i]
-        if token == '(':
-            j = i + 1
-            count = 1
-            while j < len(tokens):
-                if tokens[j] == '(':
-                    count += 1
-                elif tokens[j] == ')':
-                    count -= 1
-                if count == 0:
-                    break
-                j += 1
-            if count != 0:
-                return "Error: Mismatched parentheses"  # BUG: nested parentheses may fail
-            val = evaluate(tokens[i+1:j])
-            stack.append(val)
-            i = j
-        elif token in '+-*/':
-            stack.append(token)
-        else:
-            stack.append(token)
-        i += 1
+    """Evaluate tokens without using eval(), respecting operator precedence and parentheses.
+    Supports unary + and -.
+    """
+    # Parser functions
+    def parse_expression(i):
+        val, i = parse_term(i)
+        while i < len(tokens) and tokens[i] in ('+','-'):
+            op = tokens[i]
+            rhs, i = parse_term(i+1)
+            val = apply_operator(val, rhs, op)
+        return val, i
 
-    result = float(stack[0])
-    idx = 1
-    while idx < len(stack):
-        op = stack[idx]
-        next_val = float(stack[idx+1])
-        result = apply_operator(result, next_val, op)
-        idx += 2
-    return result
+    def parse_term(i):
+        val, i = parse_factor(i)
+        while i < len(tokens) and tokens[i] in ('*','/'):
+            op = tokens[i]
+            rhs, i = parse_factor(i+1)
+            val = apply_operator(val, rhs, op)
+        return val, i
+
+    def parse_factor(i):
+        if i >= len(tokens):
+            raise ValueError('Invalid expression')
+        t = tokens[i]
+        if t in ('+','-'):
+            # unary
+            val, j = parse_factor(i+1)
+            if t == '-':
+                return apply_operator(0, val, '-'), j
+            else:
+                return val, j
+        if t == '(':
+            val, j = parse_expression(i+1)
+            if j >= len(tokens) or tokens[j] != ')':
+                raise ValueError('Mismatched parentheses')
+            return val, j+1
+        # number
+        if t == '.' or t in ('*','/'):  # invalid factor
+            raise ValueError('Invalid expression')
+        try:
+            return Decimal(t), i+1
+        except Exception:
+            raise ValueError('Invalid number')
+
+    val, idx = parse_expression(0)
+    if idx != len(tokens):
+        raise ValueError('Invalid expression')
+    return val.normalize()
 
 def press(key):
-    # BUG: repeated input bug not filtered
+    global last_was_result
+    text = ''
+    try:
+        text = entry.get()
+    except Exception:
+        text = ''
+    if last_was_result:
+        entry.delete(0, tk.END)
+        text = ''
+        last_was_result = False
+    # debounce identical consecutive digits
+    if key.isdigit() and text.endswith(key):
+        return
+
     entry.insert(tk.END, key)
 
 def clear():
-    global history
     entry.delete(0, tk.END)
-    history = []  # BUG: clears history, not just current input
-    update_history()
 
 def calculate():
-    global history
+    global history, last_was_result
     expr = entry.get()
     try:
         tokens = tokenize(expr)
         result = evaluate(tokens)
         entry.delete(0, tk.END)
         entry.insert(0, str(result))
-        # update history
-        if len(history) < 5:
-            history.append((expr, result))
-        else:
-            # BUG: overwrites oldest incorrectly
-            history[0] = (expr, result)
+        last_was_result = True
+        # update history FIFO (size 5)
+        history.append((expr, result))
+        if len(history) > 5:
+            history.pop(0)
         update_history()
-    except Exception as e:
+    except ZeroDivisionError:
         entry.delete(0, tk.END)
-        entry.insert(0, "Error")
+        entry.insert(0, "Error: Division by zero")
+        last_was_result = False
+    except Exception:
+        entry.delete(0, tk.END)
+        entry.insert(0, "Error: Invalid expression")
+        last_was_result = False
 
 def update_history():
     hist_text.delete('1.0', tk.END)
