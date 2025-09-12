@@ -1,26 +1,18 @@
-## GUI Cauculator bug fixing
+### 🔹 Agent Prompt (English, minimal hints)
 
-You are given a Python module `calculator.py`.
-This calculator currently contains multiple defects.
-Your task is to **fix the implementation** so that all the following issues are resolved, and then **produce a new test file `calculator_test.py`** (pytest-based) that validates the fixes.
+**Task:**
+You are given a Python program `sorting_visualizer.py` that implements several sorting algorithms (Bubble Sort, Selection Sort, Insertion Sort, Quick Sort) and visualizes them in a GUI.
 
-### Known Issues to Fix
+Your goal is to **analyze and fix any defects** in the sorting algorithms so that they correctly sort arrays in ascending order.
 
-1. Floating point precision errors (e.g., `0.1+0.2` should return `0.3`，`0.1+0.2+0.3` should return `0.6`).
-2. Operator precedence errors (`2+3*4` should return `14`).
-3. Division by zero handling (`5/0` should not yield raw `"Error"`).
-4. Combined operator chains must respect precedence (e.g., `2+3*4-1` → `13`).
-5. Consecutive operators (`5+-3` should work, invalid forms like `6*/2` should be rejected).
-6. Multiple decimal points in a single number must be rejected.
-7. Post-result input should clear the previous result instead of appending.
-8. Clear button must not erase history.
-9. History must be a FIFO of size 5.
-10. Rapid repeated digit inputs must debounce (e.g., three presses of `"1"` yield `"1"`, not `"111"`).
+**Requirements:**
 
+* Preserve all GUI functionality, including highlighting the currently compared/swapped elements and showing the fully sorted array in green.
+* Maintain the speed and algorithm selection features.
+* Do not remove or break any GUI components.
+* Focus on correctness of the sorting logic.
 
-### Deliverables
+**Deliverables:**
 
-1. A corrected `calculator.py` implementation that addresses all issues.
-2. A new `calculator_test.py` file containing pytest tests that cover all issues listed above.
-
-Do not use `eval` or `exec` in your solution.
+1. A corrected version of `sorting_visualizer.py`.
+2. Automated test cases `test_sorting_visualizer.py`(in Python) that verify the correctness of all four sorting algorithms. It should run with pytest
