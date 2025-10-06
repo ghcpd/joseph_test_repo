@@ -1,0 +1,19 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h3>{{ dataset }} record</h3>
+{% if obj %}
+  <div class="card mb-3"><div class="card-body">
+    <pre style="white-space: pre-wrap;">{{ obj | tojson(indent=2) }}</pre>
+  </div></div>
+  {% if related %}
+  <h5>Related</h5>
+  <ul>
+    {% for rds, rid in related.items() %}
+      <li><a href="/dataset/{{ rds }}/{{ rid|urlencode }}">{{ rds }} detail</a></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+{% else %}
+  <div class="alert alert-warning">Record not found</div>
+{% endif %}
+{% endblock %}
