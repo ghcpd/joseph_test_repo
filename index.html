@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub PR/Issue Fetcher</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔹 GitHub PR/Issue Fetcher</h1>
+            <p>Interactive tool to fetch and display GitHub Pull Requests or Issues</p>
+        </header>
+
+        <main>
+            <!-- Step 1: Repository URL Input -->
+            <section class="input-section">
+                <label for="repo-url">GitHub Repository URL:</label>
+                <div class="input-group">
+                    <input 
+                        type="text" 
+                        id="repo-url" 
+                        placeholder="https://github.com/user/repo"
+                        autocomplete="off"
+                    >
+                    <button id="validate-btn" type="button">Validate</button>
+                </div>
+                <div id="url-error" class="error-message" style="display: none;"></div>
+            </section>
+
+            <!-- Step 2: Data Type Selection -->
+            <section class="selection-section" style="display: none;">
+                <label for="data-type">Select Data Type:</label>
+                <select id="data-type">
+                    <option value="">-- Select Type --</option>
+                    <option value="pulls">Pull Requests</option>
+                    <option value="issues">Issues</option>
+                </select>
+            </section>
+
+            <!-- Step 3: List of PRs/Issues -->
+            <section class="list-section" style="display: none;">
+                <label for="item-list">Select Item:</label>
+                <select id="item-list">
+                    <option value="">-- Loading... --</option>
+                </select>
+                <div id="loading" class="loading" style="display: none;">
+                    <span>🔄 Fetching data from GitHub...</span>
+                </div>
+                <div id="fetch-error" class="error-message" style="display: none;"></div>
+            </section>
+
+            <!-- Step 4: Item Details -->
+            <section class="details-section" style="display: none;">
+                <h2>Details</h2>
+                <div id="item-details" class="details-panel">
+                    <!-- Details will be populated here -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Error Modal -->
+        <div id="error-modal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h3>❌ Error</h3>
+                <p id="modal-error-text"></p>
+            </div>
+        </div>
+
+        <!-- Rate Limit Warning -->
+        <div id="rate-limit-warning" class="warning" style="display: none;">
+            <p>⚠️ You are approaching GitHub API rate limits. Please wait before making more requests.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="demo.js"></script>
+</body>
+</html>
