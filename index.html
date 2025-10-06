@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub PRs/Issues Viewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    label { display: block; margin: 8px 0 4px; }
+    input, select, button { padding: 8px; margin-right: 8px; }
+    #controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    #details { margin-top: 16px; border-top: 1px solid #ccc; padding-top: 16px; }
+    #details h2 { margin: 0 0 8px; }
+    .muted { color: #666; }
+    .error { color: #b00020; }
+    .highlight { background: #fff7cc; padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>GitHub PRs/Issues Viewer</h1>
+  <div id="controls">
+    <div>
+      <label for="repoUrl">GitHub Repo URL</label>
+      <input id="repoUrl" type="text" placeholder="https://github.com/owner/repo" size="40" />
+    </div>
+
+    <div>
+      <label for="dataType">Data Type</label>
+      <select id="dataType">
+        <option value="pulls">Pull Requests</option>
+        <option value="issues">Issues</option>
+      </select>
+    </div>
+
+    <div>
+      <label>&nbsp;</label>
+      <button id="fetchBtn">Fetch List</button>
+    </div>
+
+    <div>
+      <label for="itemList">PRs/Issues</label>
+      <select id="itemList" disabled>
+        <option value="">-- Select an item --</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="details"></div>
+
+  <script>
+    const repoInput = document.getElementById('repoUrl');
+    const dataTypeSelect = document.getElementById('dataType');
+    const fetchBtn = document.getElementById('fetchBtn');
+    const itemList = document.getElementById('itemList');
+    const details = document.getElementById('details');
+
+    function parseRepoUrl(url) {
+      const match = url.trim().match(/^https?:\/\/github\.com\/([^\/]+)\/([^\/#?]+)(?:[\/#?].*)?$/i);
+      if (!match) return null;
+      return { owner: match[1], repo: match[2] };
+    }
+
+    function showError(message) {
+      alert(message);
+    }
+
+    function formatDate(s) {
+      try { return new Date(s).toLocaleString(); } catch { return s; }
+    }
+
+    async function fetchJson(url) {
+      const res = await fetch(url, {
+        headers: { 'Accept': 'application/vnd.github+json' }
+      });
+      if (!res.ok) {
+        throw new Error(`Request failed: ${res.status} ${res.statusText}`);
+      }
+      return res.json();
+    }
+
+    function buildOptionText(item, type) {
+      const number = item.number;
+      let title = item.title || '(no title)';
+      let prefix = '';
+      if (Array.isArray(item.labels)) {
+        const hasBug = item.labels.some(l => (typeof l === 'string' ? l.toLowerCase() === 'bug' : (l && l.name && l.name.toLowerCase() === 'bug')));
+        if (hasBug) prefix = '[bug] ';
+      }
+      return `${prefix}#${number}: ${title}`;
+    }
+
+    function clearDetails() {
+      details.innerHTML = '';
+    }
+
+    function renderDetails(item, type) {
+      const isPR = type === 'pulls';
+      const status = isPR
+        ? (item.state === 'open' ? 'open' : (item.merged_at ? 'merged' : 'closed'))
+        : item.state;
+      const bodyHtml = item.body ? item.body.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br/>') : '<span class="muted">(no description)</span>';
+      details.innerHTML = `
+        <h2>${item.title ? item.title.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '(no title)'}</h2>
+        <div class="muted">
+          <span>Author: ${item.user && item.user.login ? item.user.login : 'unknown'}</span> |
+          <span>Status: ${status}</span> |
+          <span>Created: ${formatDate(item.created_at)}</span> |
+          <span>Updated: ${formatDate(item.updated_at)}</span>
+        </div>
+        <div style="margin-top: 12px;">${bodyHtml}</div>
+      `;
+    }
+
+    async function fetchList() {
+      clearDetails();
+      itemList.innerHTML = '<option value="">-- Select an item --</option>';
+      itemList.disabled = true;
+
+      const parsed = parseRepoUrl(repoInput.value);
+      if (!parsed) {
+        showError('Invalid GitHub URL. Please use the format: https://github.com/owner/repo');
+        return;
+      }
+
+      const type = dataTypeSelect.value; // 'pulls' or 'issues'
+      const listUrl = type === 'pulls'
+        ? `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/pulls?state=all&per_page=30`
+        : `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/issues?state=all&per_page=30`;
+
+      try {
+        let items = await fetchJson(listUrl);
+        if (type === 'issues') {
+          // Filter out PRs from the issues endpoint
+          items = items.filter(i => !i.pull_request);
+        }
+        if (!Array.isArray(items) || items.length === 0) {
+          showError('No items found for the selected repository and type.');
+          return;
+        }
+        for (const item of items) {
+          const opt = document.createElement('option');
+          opt.value = String(item.number);
+          opt.textContent = buildOptionText(item, type);
+          itemList.appendChild(opt);
+        }
+        itemList.disabled = false;
+      } catch (e) {
+        showError(`Failed to fetch list: ${e.message}`);
+      }
+    }
+
+    async function onSelectItem() {
+      clearDetails();
+      const number = itemList.value;
+      if (!number) return;
+      const parsed = parseRepoUrl(repoInput.value);
+      if (!parsed) return;
+      const type = dataTypeSelect.value;
+      const url = type === 'pulls'
+        ? `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/pulls/${number}`
+        : `https://api.github.com/repos/${parsed.owner}/${parsed.repo}/issues/${number}`;
+      try {
+        const item = await fetchJson(url);
+        renderDetails(item, type);
+      } catch (e) {
+        showError(`Failed to fetch details: ${e.message}`);
+      }
+    }
+
+    fetchBtn.addEventListener('click', fetchList);
+    itemList.addEventListener('change', onSelectItem);
+  </script>
+</body>
+</html>
