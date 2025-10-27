@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>User Registry</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; transition: background 0.3s, color 0.3s; }
+    .dark { background: #121212; color: #e0e0e0; }
+    .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+    .hidden { display: none; }
+    #toast { position: fixed; top: 10px; right: 10px; background: #333; color: #fff; padding: 10px 15px; border-radius: 4px; opacity: 0; transition: opacity 0.4s; }
+    #toast.show { opacity: 1; }
+    .fade-in { animation: fadeIn 0.4s ease-in; }
+    .fade-out { animation: fadeOut 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    .loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #0008; color: white; padding: 10px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+<div class="controls">
+  <button id="themeBtn">Toggle Theme</button>
+  <input id="search" placeholder="Search by name">
+  <select id="sort">
+    <option value="asc">Age Asc</option>
+    <option value="desc">Age Desc</option>
+  </select>
+  <span>Shown: <span id="counter">0</span></span>
+</div>
+
+<form id="userForm">
+  {% csrf_token %}
+  <input id="name" placeholder="Name">
+  <input id="email" type="email" placeholder="Email">
+  <input id="age" type="number" min="10" max="120" placeholder="Age">
+  <select id="gender">
+    <option value="">Select Gender</option>
+    <option>Male</option>
+    <option>Female</option>
+    <option>Other</option>
+  </select>
+  <button type="submit">Register</button>
+</form>
+
+<div id="toast"></div>
+<div id="loading" class="loading hidden">Loading...</div>
+
+<table>
+  <thead><tr><th>Name</th><th>Email</th><th>Age</th><th>Gender</th><th>Action</th></tr></thead>
+  <tbody id="tbody"></tbody>
+</table>
+
+<script>
+  const toast = (msg, isErr=false) => {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.background = isErr ? '#b00020' : '#333'; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'), 1800);
+  };
+  const showLoading = (s) => document.getElementById('loading').classList.toggle('hidden', !s);
+  const csrftoken = document.cookie.split('; ').find(r=>r.startsWith('csrftoken='))?.split('=')[1] || '';
+
+  let allUsers = [];
+  const tbody = document.getElementById('tbody');
+  const counter = document.getElementById('counter');
+
+  function validateForm(name, email, age, gender) {
+    if (!name.trim()) return alert('Name cannot be empty'), false;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert('Email is invalid'), false;
+    const a = Number(age); if (!(a>=10 && a<=120)) return alert('Age must be between 10 and 120'), false;
+    if (!gender) return alert('Gender must be selected'), false;
+    return true;
+  }
+
+  function render(rows) {
+    tbody.innerHTML = '';
+    rows.forEach(u => {
+      const tr = document.createElement('tr'); tr.classList.add('fade-in');
+      tr.innerHTML = `<td>${u.name}</td><td>${u.email}</td><td>${u.age}</td><td>${u.gender}</td><td><button data-id="${u.id}">Delete</button></td>`;
+      tbody.appendChild(tr);
+    });
+    counter.textContent = rows.length;
+  }
+
+  function applyFilters() {
+    const term = document.getElementById('search').value.toLowerCase();
+    const sort = document.getElementById('sort').value;
+    let rows = allUsers.filter(u => u.name.toLowerCase().includes(term));
+    rows.sort((a,b)=> sort==='asc' ? a.age-b.age : b.age-a.age);
+    render(rows);
+  }
+
+  async function loadUsers() {
+    showLoading(true);
+    try {
+      // Fetch multiple pages until no more results (for demo simplicity, up to 5 pages)
+      let page = 1; let users = []; let more = true;
+      while (more && page <= 5) {
+        const res = await fetch(`/api/users/?page=${page}&size=50`);
+        const data = await res.json();
+        users = users.concat(data.results || data); // handle paginated or non-paginated
+        more = !!data.next; page++;
+      }
+      allUsers = users; applyFilters();
+    } catch(e) { toast('Failed to load users', true); }
+    finally { showLoading(false); }
+  }
+
+  document.getElementById('userForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const age = document.getElementById('age').value;
+    const gender = document.getElementById('gender').value;
+    if (!validateForm(name, email, age, gender)) { toast('Validation failed', true); return; }
+    showLoading(true);
+    try {
+      const res = await fetch('/api/users/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken }, body: JSON.stringify({ name, email, age: Number(age), gender }) });
+      if (!res.ok) { const t = await res.text(); throw new Error(t); }
+      const u = await res.json(); allUsers.push(u); applyFilters(); toast('User registered');
+      document.getElementById('userForm').reset();
+    } catch(e) { toast('Error: '+e.message, true); }
+    finally { showLoading(false); }
+  });
+
+  tbody.addEventListener('click', async (e) => {
+    const id = e.target.dataset.id; if (!id) return;
+    if (!confirm('Are you sure you want to delete this user?')) return;
+    showLoading(true);
+    try { const res = await fetch(`/api/users/${id}/`, { method: 'DELETE', headers: { 'X-CSRFToken': csrftoken } }); if (!res.ok) throw new Error('Delete failed');
+      const idx = allUsers.findIndex(u=>u.id==id); if (idx>-1) {
+        const row = e.target.closest('tr'); row.classList.add('fade-out'); setTimeout(()=>row.remove(), 400);
+        allUsers.splice(idx,1); setTimeout(applyFilters, 410);
+      }
+      toast('User deleted');
+    } catch(e) { toast('Error: '+e.message, true); }
+    finally { showLoading(false); }
+  });
+
+  document.getElementById('search').addEventListener('input', applyFilters);
+  document.getElementById('sort').addEventListener('change', applyFilters);
+
+  const themeBtn = document.getElementById('themeBtn');
+  const applyTheme = () => document.body.classList.toggle('dark', localStorage.getItem('theme') === 'dark');
+  themeBtn.addEventListener('click', () => { const cur = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark'; localStorage.setItem('theme', cur); applyTheme(); });
+  applyTheme();
+
+  loadUsers();
+</script>
+</body>
+</html>
