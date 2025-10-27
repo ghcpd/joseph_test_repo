@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "number": 101,
+    "title": "Sample PR: Improve README",
+    "user": { "login": "alice" },
+    "state": "open",
+    "merged_at": null,
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-02T00:00:00Z",
+    "body": "This PR improves the README.",
+    "labels": [{"name":"enhancement"}]
+  },
+  {
+    "id": 2,
+    "number": 102,
+    "title": "Fix bug in login flow",
+    "user": { "login": "bob" },
+    "state": "closed",
+    "merged_at": "2024-02-01T00:00:00Z",
+    "created_at": "2024-01-10T00:00:00Z",
+    "updated_at": "2024-02-01T00:00:00Z",
+    "body": "This PR fixes a bug in the login flow.",
+    "labels": [{"name":"bug"}]
+  }
+]
