@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>GitHub PR/Issue Viewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #details { margin-top: 20px; border: 1px solid #ddd; padding: 10px; }
+    .bug { color: #b00020; font-weight: bold; }
+    label { display: block; margin: 8px 0 4px; }
+    select, input { padding: 6px; }
+  </style>
+</head>
+<body>
+  <h1>GitHub PR/Issue Viewer</h1>
+  <label for="repoUrl">GitHub repo URL (e.g., https://github.com/user/repo)</label>
+  <input id="repoUrl" type="text" placeholder="https://github.com/user/repo" />
+
+  <label for="type">Select type</label>
+  <select id="type">
+    <option>Pull Requests</option>
+    <option>Issues</option>
+  </select>
+  <button id="fetchBtn">Fetch</button>
+
+  <label for="list">Items</label>
+  <select id="list" size="8" multiple></select>
+
+  <div id="details">
+    <h3 id="d-title"></h3>
+    <p id="d-meta"></p>
+    <pre id="d-body" style="white-space: pre-wrap"></pre>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
