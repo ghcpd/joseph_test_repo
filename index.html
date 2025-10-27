@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub PR/Issue Viewer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔹 Interactive GitHub PR/Issue Viewer</h1>
+            <p>Fetch and display GitHub Pull Requests or Issues directly from the GitHub API</p>
+        </header>
+
+        <main>
+            <!-- Input Repository Section -->
+            <section class="input-section">
+                <h2>1. Input Repository</h2>
+                <div class="form-group">
+                    <label for="repoUrl">GitHub Repository URL:</label>
+                    <input 
+                        type="text" 
+                        id="repoUrl" 
+                        placeholder="https://github.com/user/repo"
+                        class="form-control"
+                    >
+                    <button id="validateRepo" class="btn btn-primary">Validate Repository</button>
+                </div>
+                <div id="repoStatus" class="status-message"></div>
+            </section>
+
+            <!-- Select Data Type Section -->
+            <section class="select-section">
+                <h2>2. Select Data Type</h2>
+                <div class="form-group">
+                    <label for="dataType">Choose what to fetch:</label>
+                    <select id="dataType" class="form-control" disabled>
+                        <option value="">Select data type...</option>
+                        <option value="prs">Pull Requests</option>
+                        <option value="issues">Issues</option>
+                    </select>
+                    <button id="fetchData" class="btn btn-primary" disabled>Fetch Data</button>
+                </div>
+                <div id="fetchStatus" class="status-message"></div>
+            </section>
+
+            <!-- Select Item Section -->
+            <section class="list-section">
+                <h2>3. Select Item</h2>
+                <div class="form-group">
+                    <label for="itemSelect">Available items:</label>
+                    <select id="itemSelect" class="form-control" disabled>
+                        <option value="">No items loaded...</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Details Panel -->
+            <section class="details-section">
+                <h2>4. Item Details</h2>
+                <div id="detailsPanel" class="details-panel">
+                    <p class="placeholder">Select an item to view its details</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Error</h3>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
