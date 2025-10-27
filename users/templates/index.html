@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --form-bg: #f8f9fa;
+            --border-color: #dee2e6;
+            --primary-color: #007bff;
+            --primary-hover: #0056b3;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --form-bg: #1e1e1e;
+            --border-color: #333333;
+            --primary-color: #4dabf7;
+            --primary-hover: #339af0;
+            --success-color: #51cf66;
+            --error-color: #ff6b6b;
+            --warning-color: #ffd43b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .theme-toggle {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-hover);
+        }
+
+        .form-container {
+            background: var(--form-bg);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            transition: background-color 0.3s ease;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        input, select {
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 5px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 14px;
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: var(--error-color);
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-sort {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            min-width: 250px;
+        }
+
+        .user-counter {
+            font-weight: 600;
+            font-size: 18px;
+            color: var(--primary-color);
+        }
+
+        .table-container {
+            background: var(--form-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr {
+            transition: background-color 0.3s ease;
+        }
+
+        tr:hover {
+            background: rgba(0, 123, 255, 0.1);
+        }
+
+        .user-row {
+            opacity: 1;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .user-row.fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        .user-row.fade-out {
+            animation: fadeOut 0.3s ease;
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: var(--success-color);
+        }
+
+        .toast.error {
+            background: var(--error-color);
+        }
+
+        .toast.warning {
+            background: var(--warning-color);
+            color: #333;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-sort {
+                flex-direction: column;
+            }
+            
+            .search-box {
+                min-width: auto;
+            }
+            
+            table {
+                font-size: 14px;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>User Registration System</h1>
+            <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+        </div>
+
+        <!-- Registration Form -->
+        <div class="form-container">
+            <h2>Register New User</h2>
+            <form id="userForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Name *</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="age">Age *</label>
+                        <input type="number" id="age" name="age" min="10" max="120" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender *</label>
+                        <select id="gender" name="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn" id="submitBtn">
+                    <span id="submitText">Register User</span>
+                    <div class="spinner" id="submitSpinner" style="display: none; width: 20px; height: 20px; margin: 0;"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <div class="search-sort">
+                <input type="text" id="searchInput" placeholder="Search by name..." class="search-box">
+                <select id="sortSelect">
+                    <option value="">Sort by Age</option>
+                    <option value="asc">Age: Low to High</option>
+                    <option value="desc">Age: High to Low</option>
+                </select>
+            </div>
+            <div class="user-counter">
+                Users: <span id="userCount">0</span>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="table-container">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Loading users...</p>
+            </div>
+            <table id="usersTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Age</th>
+                        <th>Gender</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                </tbody>
+            </table>
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i>👥</i>
+                <h3>No users found</h3>
+                <p>Register your first user using the form above.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-content">
+            <h3>Confirm Delete</h3>
+            <p>Are you sure you want to delete this user?</p>
+            <div class="modal-buttons">
+                <button class="btn" id="cancelDelete">Cancel</button>
+                <button class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let users = [];
+        let filteredUsers = [];
+        let currentDeleteId = null;
+
+        // DOM elements
+        const themeToggle = document.getElementById('themeToggle');
+        const userForm = document.getElementById('userForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const submitSpinner = document.getElementById('submitSpinner');
+        const searchInput = document.getElementById('searchInput');
+        const sortSelect = document.getElementById('sortSelect');
+        const userCount = document.getElementById('userCount');
+        const loading = document.getElementById('loading');
+        const usersTable = document.getElementById('usersTable');
+        const usersTableBody = document.getElementById('usersTableBody');
+        const emptyState = document.getElementById('emptyState');
+        const deleteModal = document.getElementById('deleteModal');
+        const cancelDelete = document.getElementById('cancelDelete');
+        const confirmDelete = document.getElementById('confirmDelete');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTheme();
+            loadUsers();
+            setupEventListeners();
+        });
+
+        // Theme management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeToggle(savedTheme);
+        }
+
+        function updateThemeToggle(theme) {
+            if (theme === 'dark') {
+                themeToggle.textContent = '☀️ Light Mode';
+            } else {
+                themeToggle.textContent = '🌙 Dark Mode';
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeToggle(newTheme);
+        }
+
+        // Event listeners
+        function setupEventListeners() {
+            themeToggle.addEventListener('click', toggleTheme);
+            userForm.addEventListener('submit', handleFormSubmit);
+            searchInput.addEventListener('input', handleSearch);
+            sortSelect.addEventListener('change', handleSort);
+            cancelDelete.addEventListener('click', hideDeleteModal);
+            confirmDelete.addEventListener('click', deleteUser);
+            
+            // Close modal on outside click
+            deleteModal.addEventListener('click', function(e) {
+                if (e.target === deleteModal) {
+                    hideDeleteModal();
+                }
+            });
+        }
+
+        // Form validation
+        function validateForm(formData) {
+            const errors = [];
+
+            // Name validation
+            if (!formData.name || formData.name.trim() === '') {
+                errors.push('Name cannot be empty.');
+            }
+
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!formData.email || !emailRegex.test(formData.email)) {
+                errors.push('Email must be a valid email address.');
+            }
+
+            // Age validation
+            const age = parseInt(formData.age);
+            if (!age || age < 10 || age > 120) {
+                errors.push('Age must be between 10 and 120.');
+            }
+
+            // Gender validation
+            if (!formData.gender) {
+                errors.push('Gender must be selected.');
+            }
+
+            return errors;
+        }
+
+        // Form submission
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(userForm);
+            const userData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                age: formData.get('age'),
+                gender: formData.get('gender')
+            };
+
+            // Client-side validation
+            const errors = validateForm(userData);
+            if (errors.length > 0) {
+                showToast(errors.join(' '), 'error');
+                return;
+            }
+
+            // Show loading state
+            setSubmitLoading(true);
+
+            try {
+                const response = await fetch('/api/users/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                if (response.ok) {
+                    const newUser = await response.json();
+                    showToast('User registered successfully!', 'success');
+                    userForm.reset();
+                    addUserToTable(newUser);
+                } else {
+                    const errorData = await response.json();
+                    const errorMessages = Object.values(errorData).flat().join(' ');
+                    showToast(errorMessages || 'Failed to register user.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                setSubmitLoading(false);
+            }
+        }
+
+        // Loading state for submit button
+        function setSubmitLoading(isLoading) {
+            if (isLoading) {
+                submitBtn.disabled = true;
+                submitText.style.display = 'none';
+                submitSpinner.style.display = 'inline-block';
+            } else {
+                submitBtn.disabled = false;
+                submitText.style.display = 'inline';
+                submitSpinner.style.display = 'none';
+            }
+        }
+
+        // Load users from API
+        async function loadUsers() {
+            showLoading(true);
+            
+            try {
+                const response = await fetch('/api/users/');
+                if (response.ok) {
+                    const data = await response.json();
+                    users = data.results || data;
+                    filteredUsers = [...users];
+                    renderUsers();
+                } else {
+                    showToast('Failed to load users.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Show/hide loading state
+        function showLoading(show) {
+            if (show) {
+                loading.style.display = 'block';
+                usersTable.style.display = 'none';
+                emptyState.style.display = 'none';
+            } else {
+                loading.style.display = 'none';
+                if (filteredUsers.length > 0) {
+                    usersTable.style.display = 'table';
+                    emptyState.style.display = 'none';
+                } else {
+                    usersTable.style.display = 'none';
+                    emptyState.style.display = 'block';
+                }
+            }
+        }
+
+        // Add user to table with animation
+        function addUserToTable(user) {
+            users.push(user);
+            applyFiltersAndSort();
+        }
+
+        // Render users table
+        function renderUsers() {
+            usersTableBody.innerHTML = '';
+            
+            filteredUsers.forEach(user => {
+                const row = createUserRow(user);
+                usersTableBody.appendChild(row);
+            });
+            
+            userCount.textContent = filteredUsers.length;
+            showLoading(false);
+        }
+
+        // Create user row element
+        function createUserRow(user) {
+            const row = document.createElement('tr');
+            row.className = 'user-row fade-in';
+            row.dataset.userId = user.id;
+            
+            row.innerHTML = `
+                <td>${escapeHtml(user.name)}</td>
+                <td>${escapeHtml(user.email)}</td>
+                <td>${user.age}</td>
+                <td>${escapeHtml(user.gender)}</td>
+                <td>
+                    <button class="btn btn-danger" onclick="showDeleteModal(${user.id})">
+                        Delete
+                    </button>
+                </td>
+            `;
+            
+            return row;
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Search functionality
+        function handleSearch() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            applyFiltersAndSort();
+        }
+
+        // Sort functionality
+        function handleSort() {
+            applyFiltersAndSort();
+        }
+
+        // Apply filters and sorting
+        function applyFiltersAndSort() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            const sortOrder = sortSelect.value;
+            
+            // Filter by search term
+            filteredUsers = users.filter(user => 
+                user.name.toLowerCase().includes(searchTerm)
+            );
+            
+            // Sort by age
+            if (sortOrder === 'asc') {
+                filteredUsers.sort((a, b) => a.age - b.age);
+            } else if (sortOrder === 'desc') {
+                filteredUsers.sort((a, b) => b.age - a.age);
+            }
+            
+            renderUsers();
+        }
+
+        // Delete modal functions
+        function showDeleteModal(userId) {
+            currentDeleteId = userId;
+            deleteModal.style.display = 'block';
+        }
+
+        function hideDeleteModal() {
+            currentDeleteId = null;
+            deleteModal.style.display = 'none';
+        }
+
+        // Delete user
+        async function deleteUser() {
+            if (!currentDeleteId) return;
+            
+            try {
+                const response = await fetch(`/api/users/${currentDeleteId}/`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showToast('User deleted successfully!', 'success');
+                    removeUserFromTable(currentDeleteId);
+                } else {
+                    showToast('Failed to delete user.', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                hideDeleteModal();
+            }
+        }
+
+        // Remove user from table with animation
+        function removeUserFromTable(userId) {
+            const row = document.querySelector(`[data-user-id="${userId}"]`);
+            if (row) {
+                row.classList.add('fade-out');
+                setTimeout(() => {
+                    users = users.filter(user => user.id !== userId);
+                    applyFiltersAndSort();
+                }, 300);
+            }
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            // Remove existing toast
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
