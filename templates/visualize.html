@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}Visualizations - PR/Issue Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Data Visualizations</h1>
+    </div>
+</div>
+
+<!-- Filter Controls -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Filters</h5>
+            </div>
+            <div class="card-body">
+                <form id="filterForm" class="row g-3">
+                    <div class="col-md-6">
+                        <label for="repoFilter" class="form-label">Repository Filter</label>
+                        <input type="text" class="form-control" id="repoFilter" name="repo" 
+                               value="{{ repo_filter }}" placeholder="Enter repository name (e.g., facebook/react)">
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">Apply Filter</button>
+                        <button type="button" class="btn btn-outline-secondary" onclick="clearFilter()">Clear</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 1 -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Top 10 Repositories by PR Count</h5>
+                <small class="text-muted">From merged_data.jsonl</small>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="topReposChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">PR Creation Timeline</h5>
+                <small class="text-muted">From merged_data.jsonl</small>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="prTimelineChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 2 -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Closing Issue Distribution by Repository</h5>
+                <small class="text-muted">From pr_issue_single.jsonl</small>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="closingIssueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">PR Creation by Month</h5>
+                <small class="text-muted">From pr_detail.jsonl</small>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="prMonthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row 3 -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Top 10 Issue Labels</h5>
+                <small class="text-muted">From issue_detail.jsonl</small>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="topLabelsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Chart Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div id="chartStats">
+                    <p class="text-muted">Loading statistics...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Indicator -->
+<div id="loadingIndicator" class="row">
+    <div class="col-12 text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading charts...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let charts = {};
+const repoFilter = '{{ repo_filter }}';
+
+// Chart color schemes
+const colorSchemes = {
+    primary: ['#0d6efd', '#6c757d', '#198754', '#dc3545', '#fd7e14', '#ffc107', '#20c997', '#6f42c1', '#e83e8c', '#fd7e14'],
+    secondary: ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#34495e', '#e67e22', '#95a5a6', '#f1c40f']
+};
+
+// Initialize all charts
+function initCharts() {
+    document.getElementById('loadingIndicator').style.display = 'block';
+    
+    Promise.all([
+        loadChart('topReposChart', 'top_repos', 'bar'),
+        loadChart('prTimelineChart', 'pr_timeline', 'line'),
+        loadChart('closingIssueChart', 'closing_issue_distribution', 'bar'),
+        loadChart('prMonthlyChart', 'pr_monthly', 'line'),
+        loadChart('topLabelsChart', 'top_labels', 'doughnut')
+    ]).then(() => {
+        document.getElementById('loadingIndicator').style.display = 'none';
+        updateChartStats();
+    }).catch(error => {
+        console.error('Error loading charts:', error);
+        document.getElementById('loadingIndicator').innerHTML = '<div class="alert alert-danger">Error loading charts</div>';
+    });
+}
+
+// Load individual chart
+async function loadChart(canvasId, chartType, type) {
+    try {
+        const url = `/api/chart_data/${chartType}?repo=${encodeURIComponent(repoFilter)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        
+        // Destroy existing chart if it exists
+        if (charts[canvasId]) {
+            charts[canvasId].destroy();
+        }
+        
+        const config = {
+            type: type,
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: getChartLabel(chartType),
+                    data: data.data,
+                    backgroundColor: type === 'doughnut' ? colorSchemes.primary : colorSchemes.primary[0],
+                    borderColor: type === 'line' ? colorSchemes.primary[0] : 'rgba(0,0,0,0.1)',
+                    borderWidth: type === 'line' ? 2 : 1,
+                    fill: type === 'line' ? false : true,
+                    tension: type === 'line' ? 0.4 : 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: type === 'doughnut',
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (type === 'doughnut') {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                                return `${context.dataset.label}: ${context.parsed}`;
+                            }
+                        }
+                    }
+                },
+                scales: type !== 'doughnut' ? {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: getXAxisLabel(chartType)
+                        }
+                    }
+                } : {}
+            }
+        };
+        
+        charts[canvasId] = new Chart(ctx, config);
+        
+    } catch (error) {
+        console.error(`Error loading chart ${chartType}:`, error);
+        document.getElementById(canvasId).parentElement.innerHTML = 
+            '<div class="alert alert-warning">Error loading chart data</div>';
+    }
+}
+
+// Get chart label
+function getChartLabel(chartType) {
+    const labels = {
+        'top_repos': 'PR Count',
+        'pr_timeline': 'PRs Created',
+        'closing_issue_distribution': 'PRs with Closing Issues',
+        'pr_monthly': 'PRs Created',
+        'top_labels': 'Label Usage'
+    };
+    return labels[chartType] || 'Count';
+}
+
+// Get X-axis label
+function getXAxisLabel(chartType) {
+    const labels = {
+        'top_repos': 'Repository',
+        'pr_timeline': 'Month',
+        'closing_issue_distribution': 'Repository',
+        'pr_monthly': 'Month',
+        'top_labels': 'Label'
+    };
+    return labels[chartType] || 'Category';
+}
+
+// Update chart statistics
+function updateChartStats() {
+    let totalDataPoints = 0;
+    let chartCount = 0;
+    
+    Object.values(charts).forEach(chart => {
+        if (chart.data && chart.data.datasets && chart.data.datasets[0]) {
+            totalDataPoints += chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+            chartCount++;
+        }
+    });
+    
+    const statsHtml = `
+        <div class="row text-center">
+            <div class="col-6">
+                <h4 class="text-primary">${chartCount}</h4>
+                <small class="text-muted">Active Charts</small>
+            </div>
+            <div class="col-6">
+                <h4 class="text-success">${totalDataPoints.toLocaleString()}</h4>
+                <small class="text-muted">Total Data Points</small>
+            </div>
+        </div>
+        <hr>
+        <div class="mt-3">
+            <h6>Filter Status</h6>
+            <p class="mb-1"><strong>Repository Filter:</strong> ${repoFilter || 'None'}</p>
+            <p class="mb-0 text-muted">Charts update automatically when filters are applied.</p>
+        </div>
+    `;
+    
+    document.getElementById('chartStats').innerHTML = statsHtml;
+}
+
+// Clear filter
+function clearFilter() {
+    window.location.href = '/visualize';
+}
+
+// Form submission
+document.getElementById('filterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const repo = document.getElementById('repoFilter').value;
+    window.location.href = `/visualize?repo=${encodeURIComponent(repo)}`;
+});
+
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initCharts();
+});
+</script>
+{% endblock %}

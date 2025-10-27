@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}{{ dataset_name.replace('_', ' ').title() }} Detail - Record {{ record_id }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('homepage') }}">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('homepage', dataset=dataset_name) }}">{{ dataset_name.replace('_', ' ').title() }}</a></li>
+                <li class="breadcrumb-item active">Record {{ record_id }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            {{ dataset_name.replace('_', ' ').title() }} - Record #{{ record_id }}
+            <span class="badge bg-secondary ms-2">ID: {{ record_id }}</span>
+        </h1>
+    </div>
+</div>
+
+<!-- Record Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Record Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% if record.get('title') %}
+                    <div class="col-md-6">
+                        <strong>Title:</strong> {{ record.title }}
+                    </div>
+                    {% endif %}
+                    {% if record.get('number') %}
+                    <div class="col-md-6">
+                        <strong>Number:</strong> {{ record.number }}
+                    </div>
+                    {% endif %}
+                    {% if record.get('repo') %}
+                    <div class="col-md-6">
+                        <strong>Repository:</strong> {{ record.repo }}
+                    </div>
+                    {% endif %}
+                    {% if record.get('full_name') %}
+                    <div class="col-md-6">
+                        <strong>Repository:</strong> {{ record.full_name }}
+                    </div>
+                    {% endif %}
+                    {% if record.get('state') %}
+                    <div class="col-md-6">
+                        <strong>State:</strong> 
+                        <span class="badge {% if record.state == 'open' %}bg-success{% elif record.state == 'closed' %}bg-secondary{% else %}bg-warning{% endif %}">
+                            {{ record.state.title() }}
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% if record.get('created_at') %}
+                    <div class="col-md-6">
+                        <strong>Created:</strong> {{ record.created_at }}
+                    </div>
+                    {% endif %}
+                    {% if record.get('user') and record.user.get('login') %}
+                    <div class="col-md-6">
+                        <strong>Author:</strong> {{ record.user.login }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Related Data -->
+{% if related.pr_detail or related.issue_detail or related.merged_data %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Related Data</h5>
+            </div>
+            <div class="card-body related-links">
+                <div class="row">
+                    {% if related.pr_detail %}
+                    <div class="col-md-4">
+                        <h6>Related Pull Requests</h6>
+                        <ul class="list-unstyled">
+                            {% for pr_id in related.pr_detail %}
+                            <li>
+                                <a href="{{ url_for('dataset_detail', dataset_name='pr_detail', record_id=pr_id) }}" 
+                                   class="text-decoration-none">
+                                    PR #{{ pr_id }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    {% if related.issue_detail %}
+                    <div class="col-md-4">
+                        <h6>Related Issues</h6>
+                        <ul class="list-unstyled">
+                            {% for issue_id in related.issue_detail %}
+                            <li>
+                                <a href="{{ url_for('dataset_detail', dataset_name='issue_detail', record_id=issue_id) }}" 
+                                   class="text-decoration-none">
+                                    Issue #{{ issue_id }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    {% if related.merged_data %}
+                    <div class="col-md-4">
+                        <h6>Merged Data</h6>
+                        <ul class="list-unstyled">
+                            {% for merged_id in related.merged_data %}
+                            <li>
+                                <a href="{{ url_for('dataset_detail', dataset_name='merged_data', record_id=merged_id) }}" 
+                                   class="text-decoration-none">
+                                    Merged #{{ merged_id }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Full Record Data -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Complete Record Data</h5>
+            </div>
+            <div class="card-body">
+                <div class="record-detail">
+                    <div class="row">
+                        {% for key, value in record.items() %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title text-primary">{{ key.replace('_', ' ').title() }}</h6>
+                                    <div class="card-text">
+                                        {% if value is none %}
+                                            <span class="text-muted">N/A</span>
+                                        {% elif value is string and value|length > 200 %}
+                                            <div style="max-height: 150px; overflow-y: auto;">
+                                                <pre class="mb-0">{{ value }}</pre>
+                                            </div>
+                                        {% elif value is mapping %}
+                                            <div style="max-height: 150px; overflow-y: auto;">
+                                                <pre class="mb-0">{{ value | tojson(indent=2) }}</pre>
+                                            </div>
+                                        {% elif value is iterable and value is not string %}
+                                            <div style="max-height: 150px; overflow-y: auto;">
+                                                <pre class="mb-0">{{ value | tojson(indent=2) }}</pre>
+                                            </div>
+                                        {% else %}
+                                            <code>{{ value }}</code>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between">
+            <a href="{{ url_for('homepage', dataset=dataset_name) }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to {{ dataset_name.replace('_', ' ').title() }}
+            </a>
+            <div>
+                {% if record_id > 0 %}
+                <a href="{{ url_for('dataset_detail', dataset_name=dataset_name, record_id=record_id-1) }}" 
+                   class="btn btn-outline-primary me-2">Previous</a>
+                {% endif %}
+                <a href="{{ url_for('dataset_detail', dataset_name=dataset_name, record_id=record_id+1) }}" 
+                   class="btn btn-outline-primary">Next</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+$(document).ready(function() {
+    // Add copy-to-clipboard functionality for code blocks
+    $('pre').each(function() {
+        const $this = $(this);
+        const $button = $('<button class="btn btn-sm btn-outline-secondary position-absolute" style="top: 5px; right: 5px;">Copy</button>');
+        $this.parent().css('position', 'relative');
+        $this.parent().append($button);
+        
+        $button.click(function() {
+            navigator.clipboard.writeText($this.text()).then(function() {
+                $button.text('Copied!');
+                setTimeout(() => $button.text('Copy'), 2000);
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
