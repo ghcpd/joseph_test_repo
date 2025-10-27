@@ -1,0 +1,56 @@
+# Scientific Calculator Requirements
+
+## System Requirements
+- Python 3.6 or higher
+- Tkinter (usually included with Python installation)
+
+## For Ubuntu/Debian systems:
+```bash
+sudo apt-get install python3-tk
+```
+
+## For CentOS/RHEL/Fedora systems:
+```bash
+sudo yum install tkinter
+# or
+sudo dnf install python3-tkinter
+```
+
+## For macOS:
+Tkinter is included with Python from python.org
+If using Homebrew Python:
+```bash
+brew install python-tk
+```
+
+## For Windows:
+Tkinter is included with standard Python installation from python.org
+
+## Optional Dependencies
+None - this calculator uses only Python standard library modules:
+- tkinter (GUI framework)
+- math (mathematical functions)  
+- re (regular expressions for parsing)
+- time (timestamps for history)
+- typing (type hints)
+
+## Development Dependencies
+For code development and testing:
+- No additional dependencies required
+- All functionality uses Python standard library
+
+## Running the Application
+```bash
+cd /path/to/calculator
+python3 main.py
+```
+
+## Testing
+```bash
+# Test individual modules
+python3 parser.py
+python3 calculator.py
+
+# Test complete integration
+python3 main.py
+```
