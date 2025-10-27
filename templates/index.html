@@ -1,0 +1,50 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="row">
+  {% for name, count in summaries.items() %}
+  <div class="col-6 col-md-3">
+    <div class="card summary-card">
+      <div class="card-body">
+        <h5 class="card-title">{{ name }}</h5>
+        <p class="card-text">{{ count }} records</p>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<ul class="nav nav-tabs mb-3">
+  {% for ds in ['pr_issue','pr_detail','issue_detail','merged_data'] %}
+  <li class="nav-item">
+    <a class="nav-link {% if current==ds %}active{% endif %}" href="/?dataset={{ ds }}">{{ ds }}</a>
+  </li>
+  {% endfor %}
+</ul>
+
+<table id="data-table" class="display table table-striped" style="width:100%">
+  <thead>
+    <tr>
+      {% for f in fields %}<th>{{ f }}</th>{% endfor %}
+      <th>detail</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+      <tr>
+        {% for v in row.vals %}
+          <td>{{ v }}</td>
+        {% endfor %}
+        <td>
+          <a href="/dataset/{{ current }}/{{ row.rid|urlencode }}">View</a>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+$(document).ready(function(){
+  $('#data-table').DataTable();
+});
+</script>
+{% endblock %}

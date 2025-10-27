@@ -1,0 +1,58 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h3>Visualizations</h3>
+<div class="mb-3">
+  <form method="get" action="/visualize" class="row g-2">
+    <div class="col-auto"><input class="form-control" type="text" name="repo" placeholder="Filter by repo (e.g., owner/repo)" value="{{ repo or '' }}"></div>
+    <div class="col-auto"><button class="btn btn-primary" type="submit">Apply</button></div>
+  </form>
+</div>
+
+<div class="row">
+  <div class="col-12 col-lg-6">
+    <div id="merged_top_repos"></div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div id="merged_time_series"></div>
+  </div>
+</div>
+<div class="row mt-3">
+  <div class="col-12 col-lg-6">
+    <div id="pr_issue_dist"></div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div id="pr_detail_hist"></div>
+  </div>
+</div>
+<div class="row mt-3">
+  <div class="col-12">
+    <div id="issue_labels"></div>
+  </div>
+</div>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<script>
+const repoFilter = {{ (repo or '') | tojson }};
+async function getAgg(){
+  const url = '/agg' + (repoFilter ? ('?repo=' + encodeURIComponent(repoFilter)) : '');
+  const res = await fetch(url); return await res.json();
+}
+
+(async function(){
+  const agg = await getAgg();
+  const top = agg.merged_top_repos;
+  Plotly.newPlot('merged_top_repos', [{x: top.map(t=>t[0]), y: top.map(t=>t[1]), type: 'bar'}], {title: 'Top 10 repos by PR count'});
+
+  const ts = agg.merged_time_series; const sKeys = Object.keys(ts).sort();
+  Plotly.newPlot('merged_time_series', [{x: sKeys, y: sKeys.map(k=>ts[k]), type: 'scatter'}], {title: 'PR creation timeline'});
+
+  const dTop = agg.pr_issue_closing_issue_counts;
+  Plotly.newPlot('pr_issue_dist', [{x: dTop.map(d=>d[0]), y: dTop.map(d=>d[1]), type: 'bar'}], {title: 'Closing issue counts per repo (Top 10)'});
+
+  const dh = agg.pr_detail_hist_by_month; const dk = Object.keys(dh).sort();
+  Plotly.newPlot('pr_detail_hist', [{x: dk, y: dk.map(k=>dh[k]), type: 'bar'}], {title: 'PRs per month'});
+
+  const lTop = agg.issue_labels_top10; 
+  Plotly.newPlot('issue_labels', [{x: lTop.map(l=>l[0]), y: lTop.map(l=>l[1]), type: 'bar'}], {title: 'Top 10 issue labels'});
+})();
+</script>
+{% endblock %}
