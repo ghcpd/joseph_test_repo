@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub Issues/PR Cards</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="sidebar">
+    <h2>Settings</h2>
+    <div class="setting">
+      <label for="textColor">Card text color</label>
+      <input type="color" id="textColor" value="#1a1a1a" />
+    </div>
+    <div class="setting">
+      <label for="bgColor">Card background color</label>
+      <input type="color" id="bgColor" value="#ffffff" />
+    </div>
+    <button id="toggleSidebar" aria-label="Toggle Settings">⫶</button>
+  </div>
+
+  <main id="main">
+    <header class="toolbar">
+      <div class="page-size">
+        <label for="pageSize">Page size</label>
+        <select id="pageSize">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+        </select>
+      </div>
+      <div class="pagination">
+        <button id="firstPage" aria-label="First Page">⏮</button>
+        <button id="prevPage" aria-label="Previous Page">◀</button>
+        <span id="pageInfo">Page 1 of 1</span>
+        <button id="nextPage" aria-label="Next Page">▶</button>
+        <button id="lastPage" aria-label="Last Page">⏭</button>
+      </div>
+    </header>
+
+    <section id="cards" class="grid"></section>
+  </main>
+
+  <div id="modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-content">
+      <button id="closeModal" class="close" aria-label="Close">✕</button>
+      <h3 id="modalTitle">Details</h3>
+      <pre id="modalBody"></pre>
+    </div>
+  </div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
