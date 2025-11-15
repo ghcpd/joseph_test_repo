@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive GitHub PR/Issue Viewer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Interactive GitHub PR/Issue Viewer</h1>
+        <p>
+          Explore pull requests and issues directly from GitHub using a local proxy
+          server. Provide a repository URL to get started.
+        </p>
+      </header>
+
+      <section class="controls">
+        <label for="repo-url">GitHub Repository URL</label>
+        <div class="repo-input">
+          <input
+            type="url"
+            id="repo-url"
+            placeholder="https://github.com/owner/repository"
+            aria-describedby="repo-help"
+          />
+          <button id="load-button" type="button">Load Data</button>
+        </div>
+        <small id="repo-help">
+          Example: https://github.com/facebook/react
+        </small>
+
+        <div class="dropdowns">
+          <div class="dropdown-group">
+            <label for="data-type">Select Data Type</label>
+            <select id="data-type">
+              <option value="prs">Pull Requests</option>
+              <option value="issues">Issues</option>
+            </select>
+          </div>
+
+          <div class="dropdown-group">
+            <label for="items">Available Items</label>
+            <select id="items" size="10" multiple aria-label="Available items list"></select>
+            <small>Select one or more items to view their details.</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="messages" aria-live="polite">
+        <p id="status-message" class="status"></p>
+        <p id="error-message" class="error" role="alert"></p>
+      </section>
+
+      <section class="details">
+        <div id="summary"></div>
+        <div id="details-container" class="detail-panels"></div>
+      </section>
+    </main>
+
+    <template id="detail-template">
+      <article class="detail">
+        <h2 class="detail-title"></h2>
+        <div class="metadata">
+          <p><strong>Author:</strong> <span data-field="author"></span></p>
+          <p><strong>Status:</strong> <span data-field="status"></span></p>
+          <p><strong>Created:</strong> <span data-field="created"></span></p>
+          <p><strong>Updated:</strong> <span data-field="updated"></span></p>
+          <p class="merged" hidden><strong>Merged:</strong> <span data-field="merged"></span></p>
+          <p class="extra"></p>
+          <p><strong>Labels:</strong> <span data-field="labels"></span></p>
+        </div>
+        <div class="body"></div>
+      </article>
+    </template>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>

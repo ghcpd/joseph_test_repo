@@ -1,0 +1,178 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #f5f7fb;
+  color: #1f2937;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+header h1 {
+  margin-bottom: 0.25rem;
+}
+
+header p {
+  margin-top: 0;
+  color: #4b5563;
+}
+
+.controls {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+  display: grid;
+  gap: 1rem;
+}
+
+.repo-input {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.repo-input input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.repo-input input:focus {
+  border-color: #2563eb;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.repo-input button {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.repo-input button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(124, 58, 237, 0.25);
+}
+
+.repo-input button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.dropdowns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.dropdown-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dropdown-group select {
+  min-height: 200px;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.messages {
+  margin-top: 1.5rem;
+}
+
+.status {
+  color: #2563eb;
+}
+
+.error {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.details {
+  margin-top: 2rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.detail-panels {
+  display: grid;
+  gap: 1rem;
+}
+
+.detail {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+}
+
+.detail-title {
+  margin: 0 0 1rem;
+}
+
+.metadata {
+  display: grid;
+  gap: 0.5rem;
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.metadata strong {
+  color: #1f2937;
+}
+
+.body {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 10px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.highlight {
+  background: rgba(190, 24, 93, 0.15);
+  border: 1px solid rgba(190, 24, 93, 0.3);
+}
+
+#summary {
+  background: #ede9fe;
+  color: #4c1d95;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(76, 29, 149, 0.2);
+}
+
+@media (max-width: 640px) {
+  .repo-input {
+    flex-direction: column;
+  }
+
+  .repo-input button {
+    width: 100%;
+  }
+
+  .dropdown-group select {
+    min-height: 160px;
+  }
+}
