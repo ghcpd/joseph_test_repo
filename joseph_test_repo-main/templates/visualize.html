@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Visualizations{% endblock %}
+
+{% block head_scripts %}
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+{% endblock %}
+
+{% block content %}
+  <div class="row mb-4">
+    <div class="col-12 col-md-6">
+      <h1 class="h4">Interactive Charts</h1>
+    </div>
+    <div class="col-12 col-md-6">
+      <form class="d-flex" method="get">
+        <select class="form-select me-2" name="repo" aria-label="Repository filter">
+          <option value="">All repositories</option>
+          {% for repo in available_repos %}
+            <option value="{{ repo }}" {% if repo == repo_filter %}selected{% endif %}>{{ repo }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Apply</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header">Top Repositories by PR Count</div>
+        <div class="card-body">
+          <div id="merged-repo-counts" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header">PR Creation Timeline</div>
+        <div class="card-body">
+          <div id="merged-time-series" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header">Closing Issues per Repository</div>
+        <div class="card-body">
+          <div id="closing-issue-dist" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header">PRs by Month</div>
+        <div class="card-body">
+          <div id="pr-by-month" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header">Top Issue Labels</div>
+        <div class="card-body">
+          <div id="issue-labels" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block body_scripts %}
+  {{ super() }}
+  <script>
+    const charts = {{ charts | tojson }};
+
+    function renderBarChart(elementId, labels, values, title) {
+      const data = [
+        {
+          x: labels,
+          y: values,
+          type: "bar",
+          marker: { color: "#0d6efd" },
+        },
+      ];
+      const layout = {
+        title,
+        margin: { t: 40, l: 50, r: 20, b: 80 },
+      };
+      Plotly.newPlot(elementId, data, layout, { responsive: true });
+    }
+
+    function renderLineChart(elementId, labels, values, title) {
+      const data = [
+        {
+          x: labels,
+          y: values,
+          type: "scatter",
+          mode: "lines+markers",
+          line: { color: "#198754" },
+        },
+      ];
+      const layout = {
+        title,
+        margin: { t: 40, l: 50, r: 20, b: 80 },
+      };
+      Plotly.newPlot(elementId, data, layout, { responsive: true });
+    }
+
+    const repoCounts = charts.merged_repo_counts || {};
+    renderBarChart(
+      "merged-repo-counts",
+      Object.keys(repoCounts),
+      Object.values(repoCounts),
+      "Top 10 Repositories"
+    );
+
+    const timeSeries = charts.merged_time_series || {};
+    renderLineChart(
+      "merged-time-series",
+      Object.keys(timeSeries),
+      Object.values(timeSeries),
+      "PRs Over Time"
+    );
+
+    const closingIssues = charts.closing_issue_distribution || {};
+    renderBarChart(
+      "closing-issue-dist",
+      Object.keys(closingIssues),
+      Object.values(closingIssues),
+      "Closing Issue Counts"
+    );
+
+    const prMonth = charts.pr_by_month || {};
+    renderBarChart(
+      "pr-by-month",
+      Object.keys(prMonth),
+      Object.values(prMonth),
+      "PRs Grouped by Month"
+    );
+
+    const issueLabels = charts.top_issue_labels || {};
+    renderBarChart(
+      "issue-labels",
+      Object.keys(issueLabels),
+      Object.values(issueLabels),
+      "Top Issue Labels"
+    );
+  </script>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}{{ dataset_title }} Details{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-12 col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">{{ dataset_title }}</h5>
+        </div>
+        <div class="card-body">
+          <dl class="row">
+            {% for key, value in record.items() %}
+              {% if key not in ["_record_id"] %}
+                <dt class="col-sm-4">{{ key.replace('_', ' ') | title }}</dt>
+                <dd class="col-sm-8">{{ value if value is not none else 'N/A' }}</dd>
+              {% endif %}
+            {% endfor %}
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4 mt-3 mt-lg-0">
+      <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+          <h6 class="mb-0">Related Records</h6>
+        </div>
+        <div class="card-body">
+          {% if related %}
+            <ul class="list-unstyled related-list">
+              {% for related_dataset, related_record in related %}
+                <li>
+                  <span class="badge bg-light text-dark me-2">{{ dataset_titles[related_dataset] }}</span>
+                  <a href="{{ url_for('dataset_detail', dataset_name=related_dataset, record_id=related_record['_record_id']) }}">
+                    {{ related_record.get('title') or related_record.get('issue_title') or related_record.get('pull_title') or related_record.get('id') or 'View record' }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted mb-0">No related records found.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

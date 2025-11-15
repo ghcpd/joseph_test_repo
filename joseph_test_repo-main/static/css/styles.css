@@ -1,0 +1,28 @@
+body {
+  background-color: #f5f7fa;
+}
+
+.dataset-card {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.dataset-card:hover {
+  transform: translateY(-4px);
+}
+
+.table-responsive {
+  margin-top: 1.5rem;
+}
+
+.related-list a {
+  text-decoration: none;
+}
+
+.related-list li {
+  margin-bottom: 0.5rem;
+}
+
+.chart-container {
+  min-height: 350px;
+}
