@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+  <div class="row g-3">
+    {% for name, meta in datasets.items() %}
+      <div class="col-12 col-md-3">
+        <div class="card shadow-sm dataset-card">
+          <div class="card-body text-center">
+            <h6 class="card-subtitle text-muted">{{ meta.title }}</h6>
+            <h3 class="card-title" data-summary="{{ name }}">{{ summary_counts[name] }}</h3>
+            <p class="card-text small mb-0">records</p>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="row mt-4 align-items-center">
+    <div class="col-12 col-md-8">
+      <div class="btn-group" role="group" aria-label="Dataset selection">
+        {% for name, meta in datasets.items() %}
+          <button
+            type="button"
+            class="btn btn-outline-primary {% if name == selected_dataset %}active{% endif %}"
+            data-dataset="{{ name }}"
+          >
+            {{ meta.title }}
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-12 col-md-4 mt-3 mt-md-0">
+      <form id="repo-filter-form" class="d-flex">
+        <select id="repo-filter" class="form-select me-2" aria-label="Repository filter">
+          <option value="">All repositories</option>
+          {% for repo in available_repos %}
+            <option value="{{ repo }}" {% if repo == repo_filter %}selected{% endif %}>{{ repo }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Apply</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="table-wrapper" class="table-responsive mt-4">
+    <h2 id="dataset-title" class="h5">{{ datasets[selected_dataset].title }}</h2>
+    <table
+      id="dataset-table"
+      class="table table-striped table-hover"
+      data-dataset="{{ selected_dataset }}"
+      data-fields='{{ table_fields | tojson }}'
+      data-records='{{ table_records | tojson }}'
+      data-titles='{{ dataset_titles | tojson }}'
+    >
+      <thead>
+        <tr>
+          {% for field in table_fields %}
+            <th>{{ field.replace('_', ' ') | title }}</th>
+          {% endfor %}
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+{% endblock %}
+
+{% block body_scripts %}
+  <script>
+    const dataset_titles = {{ dataset_titles | tojson }};
+  </script>
+{% endblock %}
