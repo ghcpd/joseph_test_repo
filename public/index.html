@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GitHub PRs & Issues Viewer</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-container">
+      <header>
+        <h1>GitHub PRs &amp; Issues Viewer</h1>
+        <p>
+          Enter a repository URL, choose whether to explore pull requests or issues,
+          and then inspect the details of individual items.
+        </p>
+      </header>
+
+      <section class="controls">
+        <div class="control-group">
+          <label for="repoUrl">Repository URL</label>
+          <div class="input-row">
+            <input
+              type="text"
+              id="repoUrl"
+              placeholder="https://github.com/owner/repo"
+              aria-describedby="repoUrlHelp"
+            />
+            <button id="fetchButton" type="button">Fetch</button>
+          </div>
+          <small id="repoUrlHelp">Example: https://github.com/facebook/react</small>
+        </div>
+
+        <div class="control-group">
+          <label for="dataType">Data Type</label>
+          <select id="dataType">
+            <option value="pulls">Pull Requests</option>
+            <option value="issues">Issues</option>
+          </select>
+        </div>
+
+        <div class="status-message" aria-live="polite" id="statusMessage"></div>
+      </section>
+
+      <section class="results">
+        <div class="list-panel">
+          <label for="itemsList">Select PRs/Issues</label>
+          <select id="itemsList" multiple size="10" aria-label="PRs or Issues list"></select>
+        </div>
+        <div class="details-panel" id="detailsPanel">
+          <p class="placeholder">Select an item to see its details.</p>
+        </div>
+      </section>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "bbe1c939-0c84-49b3-9a61-afbe91a1c1f8",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/run-tests.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
