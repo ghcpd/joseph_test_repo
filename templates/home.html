@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-3">
+  {% for name, config in datasets.items() %}
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="card summary-card h-100">
+      <div class="card-body text-center">
+        <h6 class="card-subtitle text-muted">{{ config.label }}</h6>
+        <p class="display-6 fw-bold mb-0">{{ summary.get(name, 0) }}</p>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card mt-4">
+  <div class="card-body">
+    <ul class="nav nav-pills flex-wrap mb-4 dataset-tabs">
+      {% for name, config in datasets.items() %}
+      <li class="nav-item">
+        <a class="nav-link{% if selected_dataset == name %} active{% endif %}" href="{{ url_for('home', dataset=name) }}">{{ config.label }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% if records %}
+    <div class="table-responsive">
+      <table id="dataset-table" class="table table-striped table-hover align-middle">
+        <thead class="table-light">
+          <tr>
+            <th scope="col">Details</th>
+            {% for field in fields %}
+            <th scope="col">{{ field | replace('_', ' ') | title }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in records %}
+          {% set record_id = record.get(primary_key) %}
+          {% if record_id is not none %}
+          <tr>
+            <td><a href="{{ url_for('dataset_detail', dataset_name=selected_dataset, record_id=record_id) }}" class="btn btn-sm btn-outline-primary">Open</a></td>
+            {% for field in fields %}
+            <td>{{ record.get(field, 'N/A') }}</td>
+            {% endfor %}
+          </tr>
+          {% endif %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0">No records available for this dataset.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

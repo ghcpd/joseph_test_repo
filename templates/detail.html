@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">{{ dataset.label }} Details</h5>
+      </div>
+      <div class="card-body">
+        <dl class="row">
+          {% for key, value in record.items() %}
+          <dt class="col-sm-4">{{ key | replace('_', ' ') | title }}</dt>
+          <dd class="col-sm-8"><pre class="mb-0">{{ value | format_value }}</pre></dd>
+          {% endfor %}
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0">Related Data</h6>
+      </div>
+      <div class="card-body">
+        {% if related %}
+        {% for name, items in related.items() %}
+        <div class="mb-3">
+          <h6 class="fw-bold">{{ datasets[name].label if datasets and name in datasets else name | replace('_', ' ') | title }}</h6>
+          <ul class="list-unstyled">
+            {% for item in items %}
+            <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-muted mb-0">No related records found.</p>
+        {% endif %}
+      </div>
+    </div>
+    <a class="btn btn-link mt-3" href="{{ url_for('home', dataset=dataset.name) }}">&larr; Back to {{ dataset.label }}</a>
+  </div>
+</div>
+{% endblock %}

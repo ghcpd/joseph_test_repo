@@ -1,0 +1,24 @@
+.summary-card {
+  border-left: 4px solid #0d6efd;
+  background-color: #f8f9fa;
+}
+
+.dataset-tabs .nav-link {
+  margin-right: 0.5rem;
+}
+
+.chart-container {
+  width: 100%;
+  min-height: 320px;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 576px) {
+  .display-6 {
+    font-size: 2rem;
+  }
+}
