@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub PR &amp; Issue Explorer</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #1f2937, #111827);
+      min-height: 100vh;
+      color: #f9fafb;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .app-shell {
+      background-color: rgba(17, 24, 39, 0.9);
+      border-radius: 16px;
+      padding: 32px;
+      margin: 32px;
+      width: min(100%, 920px);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(6px);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+    header p {
+      margin: 0;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    form {
+      display: grid;
+      gap: 20px;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    input[type="text"],
+    select,
+    button {
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background-color: rgba(15, 23, 42, 0.7);
+      color: #f9fafb;
+      padding: 12px 16px;
+      font-size: 1rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    button:focus {
+      outline: none;
+      border-color: rgba(96, 165, 250, 0.7);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    }
+
+    button {
+      cursor: pointer;
+      font-weight: 600;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border: none;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .inline-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      align-items: center;
+    }
+
+    .message {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .message.error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      color: #fecaca;
+    }
+
+    .message.info {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(96, 165, 250, 0.35);
+      color: #bfdbfe;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .results-section {
+      margin-top: 28px;
+      display: grid;
+      gap: 20px;
+    }
+
+    #itemSelect {
+      width: 100%;
+      min-height: 180px;
+      font-size: 0.95rem;
+    }
+
+    #itemSelect option[data-bug="true"] {
+      color: #f97316;
+      font-weight: 600;
+    }
+
+    .hint {
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .details-card,
+    .summary-card {
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .details-card h2,
+    .summary-card h2 {
+      margin-top: 0;
+      font-size: 1.35rem;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 12px 0 16px;
+      font-size: 0.95rem;
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    .meta span {
+      background: rgba(59, 130, 246, 0.15);
+      border-radius: 999px;
+      padding: 6px 12px;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+    }
+
+    .body-content {
+      white-space: pre-wrap;
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 8px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      max-height: 320px;
+      overflow: auto;
+      font-size: 0.95rem;
+    }
+
+    a.resource-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      color: #93c5fd;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a.resource-link:hover {
+      color: #bfdbfe;
+    }
+
+    .label {
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(74, 222, 128, 0.35);
+      color: #bbf7d0;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .label .color-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .labels-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .summary-pill {
+      background: rgba(59, 130, 246, 0.2);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border: 1px solid rgba(96, 165, 250, 0.35);
+    }
+
+    @media (max-width: 768px) {
+      .app-shell {
+        margin: 16px;
+        padding: 24px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      #itemSelect {
+        min-height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div>
+        <h1>GitHub PR &amp; Issue Explorer</h1>
+        <p>Discover pull requests or issues by repository, and review their details instantly.</p>
+      </div>
+    </header>
+
+    <form id="repoForm">
+      <div class="field-group">
+        <label for="repoUrl">GitHub Repository URL</label>
+        <input id="repoUrl" type="text" placeholder="https://github.com/user/repo" autocomplete="off" required />
+        <span class="hint">Use the full repository URL (owner/name). Example: https://github.com/octocat/Hello-World</span>
+      </div>
+
+      <div class="field-group inline-group">
+        <div>
+          <label for="dataType">Data Type</label>
+          <select id="dataType">
+            <option value="pulls">Pull Requests</option>
+            <option value="issues">Issues</option>
+          </select>
+        </div>
+        <button id="fetchButton" type="submit">Fetch List</button>
+      </div>
+    </form>
+
+    <p id="errorBox" class="message error hidden"></p>
+    <p id="infoBox" class="message info hidden"></p>
+
+    <section class="results-section hidden" id="resultsSection">
+      <div class="field-group">
+        <label for="itemSelect">Available items
+          <span class="hint">Hold Ctrl (Windows/Linux) or ⌘ (macOS) to select multiple entries.</span>
+        </label>
+        <select id="itemSelect" size="8" multiple></select>
+      </div>
+
+      <div id="summaryCard" class="summary-card hidden">
+        <h2>Combined Summary</h2>
+        <div id="summaryContent"></div>
+      </div>
+
+      <div id="detailsCard" class="details-card hidden">
+        <h2 id="detailsTitle">Details</h2>
+        <div class="meta" id="detailsMeta"></div>
+        <div id="detailsBody" class="body-content"></div>
+        <div id="labelsContainer" class="labels-container"></div>
+        <a id="resourceLink" class="resource-link" href="#" target="_blank" rel="noopener">View on GitHub →</a>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const repoForm = document.getElementById("repoForm");
+    const repoUrlInput = document.getElementById("repoUrl");
+    const dataTypeSelect = document.getElementById("dataType");
+    const fetchButton = document.getElementById("fetchButton");
+    const errorBox = document.getElementById("errorBox");
+    const infoBox = document.getElementById("infoBox");
+    const resultsSection = document.getElementById("resultsSection");
+    const itemSelect = document.getElementById("itemSelect");
+    const summaryCard = document.getElementById("summaryCard");
+    const summaryContent = document.getElementById("summaryContent");
+    const detailsCard = document.getElementById("detailsCard");
+    const detailsTitle = document.getElementById("detailsTitle");
+    const detailsMeta = document.getElementById("detailsMeta");
+    const detailsBody = document.getElementById("detailsBody");
+    const labelsContainer = document.getElementById("labelsContainer");
+    const resourceLink = document.getElementById("resourceLink");
+
+    const cache = new Map();
+    let currentItems = [];
+
+    const parseRepositoryUrl = (url) => {
+      const pattern = /^https:\/\/github\.com\/([\w.-]+)\/([\w.-]+)(?:\/)?$/i;
+      const match = url.trim().match(pattern);
+      if (!match) {
+        return null;
+      }
+      return { owner: match[1], repo: match[2] };
+    };
+
+    const setMessage = (element, message) => {
+      if (!message) {
+        element.classList.add("hidden");
+        element.textContent = "";
+      } else {
+        element.textContent = message;
+        element.classList.remove("hidden");
+      }
+    };
+
+    const toggleLoading = (isLoading) => {
+      fetchButton.disabled = isLoading;
+      fetchButton.textContent = isLoading ? "Fetching…" : "Fetch List";
+    };
+
+    const buildApiUrl = ({ owner, repo }, type) => {
+      const base = `https://api.github.com/repos/${owner}/${repo}`;
+      if (type === "issues") {
+        return `${base}/issues?state=all&per_page=50`;
+      }
+      return `${base}/pulls?state=all&per_page=50`;
+    };
+
+    const formatDate = (isoString) => {
+      if (!isoString) return "Unknown";
+      return new Date(isoString).toLocaleString();
+    };
+
+    const computeStatus = (item, type) => {
+      if (type === "pulls") {
+        if (item.merged_at) {
+          return "Merged";
+        }
+        return item.state === "open" ? "Open" : "Closed";
+      }
+      return item.state === "open" ? "Open" : "Closed";
+    };
+
+    const highlightBug = (labels = []) => {
+      return labels.some((label) => label.name.toLowerCase() === "bug");
+    };
+
+    const populateDropdown = (items, type) => {
+      itemSelect.innerHTML = "";
+      if (!items.length) {
+        const placeholder = document.createElement("option");
+        placeholder.textContent = "No entries returned";
+        placeholder.disabled = true;
+        itemSelect.appendChild(placeholder);
+        itemSelect.disabled = true;
+        return;
+      }
+
+      items.forEach((item, index) => {
+        const option = document.createElement("option");
+        option.value = String(index);
+        const status = computeStatus(item, type);
+        const hasBugLabel = highlightBug(item.labels || []);
+        const prefix = hasBugLabel ? "[BUG] " : "";
+        option.textContent = `${prefix}#${item.number} • ${item.title}`;
+        option.dataset.bug = hasBugLabel ? "true" : "false";
+        option.dataset.status = status.toLowerCase();
+        itemSelect.appendChild(option);
+      });
+      itemSelect.disabled = false;
+      itemSelect.focus({ preventScroll: true });
+    };
+
+    const renderLabels = (labels = []) => {
+      labelsContainer.innerHTML = "";
+      if (!labels.length) {
+        return;
+      }
+
+      labels.forEach((label) => {
+        const labelElement = document.createElement("span");
+        labelElement.className = "label";
+        const colorSwatch = document.createElement("span");
+        colorSwatch.className = "color-swatch";
+        colorSwatch.style.backgroundColor = `#${label.color}`;
+        labelElement.appendChild(colorSwatch);
+        labelElement.append(label.name);
+        labelsContainer.appendChild(labelElement);
+      });
+    };
+
+    const renderDetails = (item, type) => {
+      if (!item) {
+        detailsCard.classList.add("hidden");
+        return;
+      }
+      detailsCard.classList.remove("hidden");
+      detailsTitle.textContent = item.title;
+
+      const metaFragments = [
+        `Author: ${item.user?.login ?? "Unknown"}`,
+        `Status: ${computeStatus(item, type)}`,
+        `Created: ${formatDate(item.created_at)}`,
+        `Updated: ${formatDate(item.updated_at)}`,
+      ];
+
+      detailsMeta.innerHTML = metaFragments
+        .map((fragment) => `<span>${fragment}</span>`)
+        .join("");
+
+      detailsBody.textContent = item.body?.trim() || "No description provided.";
+      renderLabels(item.labels || []);
+      resourceLink.href = item.html_url;
+    };
+
+    const renderSummary = (selectedItems, type) => {
+      if (selectedItems.length < 2) {
+        summaryCard.classList.add("hidden");
+        summaryContent.innerHTML = "";
+        return;
+      }
+
+      const statuses = new Map();
+      const authors = new Set();
+      let earliest = null;
+      let latest = null;
+
+      selectedItems.forEach((item) => {
+        const status = computeStatus(item, type);
+        statuses.set(status, (statuses.get(status) || 0) + 1);
+        if (item.user?.login) {
+          authors.add(item.user.login);
+        }
+        const created = item.created_at ? new Date(item.created_at) : null;
+        if (created) {
+          if (!earliest || created < earliest) earliest = created;
+          if (!latest || created > latest) latest = created;
+        }
+      });
+
+      const summaryPieces = `
+        <div class="summary-grid">
+          <div class="summary-pill">Selected: ${selectedItems.length}</div>
+          <div class="summary-pill">Unique authors: ${authors.size}</div>
+          <div class="summary-pill">Created between: ${earliest ? earliest.toLocaleDateString() : "N/A"} → ${
+        latest ? latest.toLocaleDateString() : "N/A"
+      }</div>
+        </div>
+        <div class="summary-pill">Statuses: ${[...statuses.entries()]
+          .map(([status, count]) => `${status} (${count})`)
+          .join(", ")}</div>
+      `;
+
+      summaryContent.innerHTML = summaryPieces;
+      summaryCard.classList.remove("hidden");
+    };
+
+    const handleSelectionChange = () => {
+      const selectedIndices = Array.from(itemSelect.selectedOptions)
+        .filter((option) => option.value !== "")
+        .map((option) => parseInt(option.value, 10));
+
+      const selectedItems = selectedIndices.map((index) => currentItems[index]).filter(Boolean);
+
+      renderSummary(selectedItems, dataTypeSelect.value);
+
+      const focusedItem = selectedItems[selectedItems.length - 1];
+      renderDetails(focusedItem, dataTypeSelect.value);
+    };
+
+    const cacheKey = ({ owner, repo }, type) => `${owner}/${repo}:${type}`;
+
+    const fetchItems = async (repoInfo, type) => {
+      const key = cacheKey(repoInfo, type);
+      if (cache.has(key)) {
+        return cache.get(key);
+      }
+
+      const response = await fetch(buildApiUrl(repoInfo, type));
+      if (!response.ok) {
+        throw new Error(`GitHub API responded with ${response.status}`);
+      }
+      const data = await response.json();
+      const filteredData =
+        type === "issues"
+          ? data.filter((item) => !item.pull_request)
+          : data;
+      cache.set(key, filteredData);
+      return filteredData;
+    };
+
+    const resetView = () => {
+      currentItems = [];
+      itemSelect.innerHTML = "";
+      itemSelect.disabled = true;
+      detailsCard.classList.add("hidden");
+      summaryCard.classList.add("hidden");
+      labelsContainer.innerHTML = "";
+      summaryContent.innerHTML = "";
+      resultsSection.classList.add("hidden");
+      setMessage(infoBox, "");
+    };
+
+    repoForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      resetView();
+
+      const repoInfo = parseRepositoryUrl(repoUrlInput.value);
+      if (!repoInfo) {
+        setMessage(errorBox, "The repository URL must follow the format https://github.com/owner/repo.");
+        window.alert("Please provide a valid GitHub repository URL in the format https://github.com/owner/repo.");
+        return;
+      }
+
+      const type = dataTypeSelect.value;
+      const friendlyType = type === "pulls" ? "pull requests" : "issues";
+
+      setMessage(errorBox, "");
+      setMessage(infoBox, `Fetching ${friendlyType} for ${repoInfo.owner}/${repoInfo.repo}…`);
+      toggleLoading(true);
+
+      try {
+        const items = await fetchItems(repoInfo, type);
+        currentItems = items;
+        if (!items.length) {
+          setMessage(infoBox, `No ${friendlyType} were found for this repository.`);
+          return;
+        }
+
+        populateDropdown(items, type);
+        resultsSection.classList.remove("hidden");
+        setMessage(infoBox, `Loaded ${items.length} ${friendlyType}. Select one or many to inspect.`);
+      } catch (error) {
+        console.error(error);
+        setMessage(errorBox, `Unable to fetch ${friendlyType}: ${error.message}`);
+        setMessage(infoBox, "");
+      } finally {
+        toggleLoading(false);
+      }
+    });
+
+    itemSelect.addEventListener("change", handleSelectionChange);
+
+    dataTypeSelect.addEventListener("change", () => {
+      resultsSection.classList.add("hidden");
+      currentItems = [];
+      detailsCard.classList.add("hidden");
+      summaryCard.classList.add("hidden");
+      setMessage(infoBox, "");
+      setMessage(errorBox, "");
+    });
+  </script>
+</body>
+</html>
