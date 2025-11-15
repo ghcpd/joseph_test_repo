@@ -1,0 +1,17 @@
+{
+  "name": "github-interactive-viewer",
+  "version": "1.0.0",
+  "description": "Interactive GitHub PR/Issue viewer with Node.js proxy server",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"No automated tests configured\" && exit 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cross-fetch": "^3.1.5",
+    "express": "^4.18.2"
+  }
+}
