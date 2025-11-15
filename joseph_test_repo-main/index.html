@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>GitHub PR/Issue Explorer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0d1117;
+        --card: #161b22;
+        --accent: #2f81f7;
+        --accent-contrast: #ffffff;
+        --text: #f0f6fc;
+        --muted: #8b949e;
+        --error: #f85149;
+      }
+
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+      }
+
+      .container {
+        margin-top: 40px;
+        width: min(960px, 95%);
+        background: var(--card);
+        border-radius: 12px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+        padding: 24px 32px 36px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: 28px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      h1 span {
+        font-size: 32px;
+      }
+
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+
+      input,
+      select,
+      button,
+      textarea {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(240, 246, 252, 0.1);
+        background: rgba(13, 17, 23, 0.6);
+        color: var(--text);
+        font-size: 15px;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input:focus,
+      select:focus,
+      button:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px rgba(47, 129, 247, 0.25);
+      }
+
+      button {
+        background: var(--accent);
+        color: var(--accent-contrast);
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: transparent;
+        border: 1px solid rgba(240, 246, 252, 0.15);
+        color: var(--text);
+      }
+
+      .detail-panel {
+        margin-top: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+
+      .card {
+        background: rgba(22, 27, 34, 0.85);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(240, 246, 252, 0.06);
+        min-height: 260px;
+      }
+
+      .card h2 {
+        margin-top: 0;
+        margin-bottom: 12px;
+        font-size: 20px;
+      }
+
+      .meta {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 6px 12px;
+        font-size: 14px;
+      }
+
+      .meta span.label {
+        color: var(--muted);
+      }
+
+      .description {
+        margin-top: 16px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+        max-height: 260px;
+        overflow-y: auto;
+        padding-right: 8px;
+      }
+
+      .multi-select {
+        max-height: 240px;
+        overflow-y: auto;
+        margin-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .multi-select label {
+        font-weight: 500;
+        background: rgba(13, 17, 23, 0.6);
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(240, 246, 252, 0.06);
+      }
+
+      .multi-select label.bug {
+        border-color: #f8514920;
+        box-shadow: inset 0 0 0 1px rgba(248, 81, 73, 0.35);
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(47, 129, 247, 0.15);
+        color: var(--accent);
+        font-weight: 600;
+        margin-top: 12px;
+        text-transform: capitalize;
+      }
+
+      .status-pill.merged {
+        background: rgba(63, 185, 80, 0.18);
+        color: #3fb950;
+      }
+
+      .status-pill.closed {
+        background: rgba(248, 81, 73, 0.2);
+        color: #f85149;
+      }
+
+      .summary {
+        margin-top: 16px;
+        background: rgba(13, 17, 23, 0.6);
+        border-radius: 10px;
+        padding: 16px;
+        border: 1px dashed rgba(240, 246, 252, 0.08);
+        line-height: 1.45;
+        display: none;
+      }
+
+      .error {
+        display: none;
+        margin-top: 12px;
+        color: var(--error);
+        font-weight: 500;
+      }
+
+      @media (max-width: 920px) {
+        .detail-panel {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1><span>📦</span> GitHub Explorer</h1>
+      <div class="controls">
+        <label>
+          Repository URL
+          <input
+            id="repo"
+            type="url"
+            placeholder="https://github.com/user/repository"
+            autocomplete="off"
+          />
+        </label>
+        <label>
+          Data Type
+          <select id="type">
+            <option value="pulls">Pull Requests</option>
+            <option value="issues">Issues</option>
+          </select>
+        </label>
+        <label>
+          Available Items
+          <select id="item" disabled></select>
+        </label>
+        <div>
+          <button id="fetch">Fetch</button>
+          <button id="summary" class="secondary">Combined Summary</button>
+        </div>
+      </div>
+      <div id="error" class="error"></div>
+      <div class="detail-panel">
+        <div class="card">
+          <h2>Details</h2>
+          <div class="meta" id="meta"></div>
+          <div class="status-pill" id="status">Status: Unknown</div>
+          <div class="description" id="description">Select an item to see details.</div>
+        </div>
+        <div class="card">
+          <h2>Select Multiple</h2>
+          <div id="multi" class="multi-select"></div>
+          <div id="summaryPanel" class="summary"></div>
+        </div>
+      </div>
+    </div>
+    <script>
+      const repoInput = document.getElementById("repo");
+      const typeSelect = document.getElementById("type");
+      const itemSelect = document.getElementById("item");
+      const fetchButton = document.getElementById("fetch");
+      const errorBanner = document.getElementById("error");
+      const meta = document.getElementById("meta");
+      const status = document.getElementById("status");
+      const description = document.getElementById("description");
+      const multiSelect = document.getElementById("multi");
+      const summaryButton = document.getElementById("summary");
+      const summaryPanel = document.getElementById("summaryPanel");
+
+      const cache = new Map();
+      let items = [];
+
+      const formatDate = (value) => {
+        if (!value) return "Unknown";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}`;
+      };
+
+      const validateRepo = (url) => {
+        const pattern = /^https:\/\/github\.com\/(\w[\w.-]*)\/(\w[\w.-]*)\/?$/i;
+        const match = url.trim().match(pattern);
+        if (!match) return null;
+        return { owner: match[1], repo: match[2] };
+      };
+
+      const setError = (message) => {
+        if (message) {
+          errorBanner.textContent = message;
+          errorBanner.style.display = "block";
+        } else {
+          errorBanner.textContent = "";
+          errorBanner.style.display = "none";
+        }
+      };
+
+      const updateItemSelect = (data) => {
+        itemSelect.innerHTML = "";
+        data.forEach((item, index) => {
+          const option = document.createElement("option");
+          option.value = index;
+          option.textContent = `${item.highlight ? "🐞 " : ""}#${item.number} - ${item.title}`;
+          itemSelect.appendChild(option);
+        });
+        itemSelect.disabled = data.length === 0;
+      };
+
+      const renderMultiSelect = (data) => {
+        multiSelect.innerHTML = "";
+        data.forEach((item, index) => {
+          const wrapper = document.createElement("label");
+          if (item.highlight) wrapper.classList.add("bug");
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.value = index;
+          checkbox.dataset.index = index;
+          const title = document.createElement("span");
+          title.innerHTML = `<strong>#${item.number}</strong> — ${item.title}`;
+          wrapper.appendChild(checkbox);
+          wrapper.appendChild(title);
+          multiSelect.appendChild(wrapper);
+        });
+      };
+
+      const updateDetails = (item) => {
+        meta.innerHTML = `
+          <span class="label">Title</span><span>${item.title}</span>
+          <span class="label">Author</span><span>${item.author}</span>
+          <span class="label">Created</span><span>${formatDate(item.created)}</span>
+          <span class="label">Updated</span><span>${formatDate(item.updated)}</span>
+          <span class="label">Labels</span><span>${item.labels.join(", ") || "None"}</span>
+        `;
+        description.textContent = item.body || "(No description)";
+        status.textContent = `Status: ${item.status}`;
+        status.className = `status-pill ${item.status}`;
+      };
+
+      const normalizeItem = (raw, type) => {
+        if (raw.author && Array.isArray(raw.labels)) {
+          const labels = raw.labels.map((label) => String(label).toLowerCase());
+          return {
+            raw,
+            number: raw.number,
+            title: raw.title,
+            author: raw.author,
+            status: raw.status || "unknown",
+            created: raw.created,
+            updated: raw.updated,
+            labels,
+            highlight:
+              typeof raw.highlight === "boolean" ? raw.highlight : labels.includes("bug"),
+            body: raw.body,
+          };
+        }
+        const labels = (raw.labels || []).map((label) => label.name.toLowerCase());
+        const highlight = labels.includes("bug");
+        const status =
+          type === "pulls" && raw.merged_at
+            ? "merged"
+            : raw.state || "unknown";
+        return {
+          raw,
+          number: raw.number,
+          title: raw.title,
+          author: raw.user ? raw.user.login : "Unknown",
+          status,
+          created: raw.created_at,
+          updated: raw.updated_at,
+          labels,
+          highlight,
+          body: raw.body,
+        };
+      };
+
+      const requestItems = async (owner, repo, type) => {
+        const query = new URLSearchParams({ owner, repo, type });
+        const response = await fetch(`/api/items?${query.toString()}`);
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || `${response.status} ${response.statusText}`);
+        }
+        const payload = await response.json();
+        if (payload.error) {
+          throw new Error(payload.error);
+        }
+        return payload.items || [];
+      };
+
+      const fetchItems = async () => {
+        setError("");
+        summaryPanel.style.display = "none";
+        const repoValue = repoInput.value;
+        const info = validateRepo(repoValue);
+        if (!info) {
+          setError("Please enter a valid GitHub repository URL (https://github.com/owner/repo).");
+          return;
+        }
+
+        const type = typeSelect.value;
+        const cacheKey = `${info.owner}/${info.repo}/${type}`;
+        if (cache.has(cacheKey)) {
+          items = cache.get(cacheKey);
+          updateItemSelect(items);
+          renderMultiSelect(items);
+          if (items.length) updateDetails(items[0]);
+          return;
+        }
+
+        try {
+          const data = await requestItems(info.owner, info.repo, type);
+          items = data.map((item) => normalizeItem(item, type));
+          if (!items.length) {
+            setError("No items found for this repository.");
+            updateItemSelect([]);
+            renderMultiSelect([]);
+            return;
+          }
+          cache.set(cacheKey, items);
+          updateItemSelect(items);
+          renderMultiSelect(items);
+          updateDetails(items[0]);
+        } catch (error) {
+          setError(`Failed to fetch data: ${error.message}`);
+        }
+      };
+
+      const handleSelectionChange = () => {
+        const value = itemSelect.value;
+        if (value === "" || !items.length) return;
+        const selected = items[Number(value)];
+        if (selected) updateDetails(selected);
+      };
+
+      const showSummary = () => {
+        const selected = Array.from(
+          multiSelect.querySelectorAll('input[type="checkbox"]:checked')
+        );
+        if (!selected.length) {
+          setError("Select at least one item from the multi-select list.");
+          return;
+        }
+        setError("");
+        const chosen = selected.map((input) => items[Number(input.dataset.index)]);
+        const summary = chosen
+          .map(
+            (item) =>
+              `#${item.number} — ${item.title}\n• Status: ${item.status}\n• Author: ${item.author}\n• Updated: ${formatDate(item.updated)}`
+          )
+          .join("\n\n");
+        summaryPanel.textContent = summary;
+        summaryPanel.style.display = "block";
+      };
+
+      fetchButton.addEventListener("click", fetchItems);
+      itemSelect.addEventListener("change", handleSelectionChange);
+      summaryButton.addEventListener("click", showSummary);
+
+      window.addEventListener("load", () => {
+        repoInput.value = "https://github.com/python/cpython";
+        fetchItems();
+      });
+    </script>
+  </body>
+</html>
