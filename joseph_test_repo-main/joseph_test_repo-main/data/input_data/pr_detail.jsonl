@@ -1,0 +1,3 @@
+{"id": "octo/alpha#101", "repo": "octo/alpha", "number": 101, "title": "Improve authentication flow", "user": "alice", "created_at": "2023-03-05T14:20:00Z", "merged_at": "2023-03-10T10:00:00Z", "state": "closed", "linked_issue": 35}
+{"id": "octo/alpha#102", "repo": "octo/alpha", "number": 102, "title": "Add new dashboard widgets", "user": "bob", "created_at": "2023-04-18T09:05:00Z", "merged_at": null, "state": "open", "linked_issue": 40}
+{"id": "delta/beta#55", "repo": "delta/beta", "number": 55, "title": "Fix API rate limiter", "user": "carol", "created_at": "2023-02-11T16:00:00Z", "merged_at": null, "state": "open", "linked_issue": 10}

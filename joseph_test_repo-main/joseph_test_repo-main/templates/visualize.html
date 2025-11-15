@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between mb-4 gap-3">
+    <div>
+      <h1 class="h3 mb-0">Visual Analytics</h1>
+      <p class="text-muted mb-0">Interactive charts summarizing PRs and issues.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">Go to Dashboard</a>
+  </div>
+
+  <form method="get" class="row gy-2 gx-3 align-items-center mb-4">
+    <div class="col-sm-6 col-lg-4">
+      <label for="repo" class="form-label small text-uppercase">Filter by repository</label>
+      <select class="form-select" name="repo" id="repo">
+        <option value="">All repositories</option>
+        {% for repo in repo_options %}
+          <option value="{{ repo }}" {% if repo == repo_filter %}selected{% endif %}>{{ repo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-sm-3 col-lg-2 d-flex align-items-end gap-2">
+      <button class="btn btn-primary w-100" type="submit">Apply</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('visualize') }}">Reset</a>
+    </div>
+  </form>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-light">
+          <h2 class="h6 mb-0">Top Repositories by PR Count</h2>
+        </div>
+        <div class="card-body">
+          <div id="merged-top-repos" class="chart-placeholder"></div>
+          <p class="small text-muted mt-3 mb-0">Source: merged_data.jsonl</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-light">
+          <h2 class="h6 mb-0">PR Creation Timeline</h2>
+        </div>
+        <div class="card-body">
+          <div id="merged-timeline" class="chart-placeholder"></div>
+          <p class="small text-muted mt-3 mb-0">Source: merged_data.jsonl</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-light">
+          <h2 class="h6 mb-0">Closing Issue Counts per Repository</h2>
+        </div>
+        <div class="card-body">
+          <div id="pr-issue-repo-dist" class="chart-placeholder"></div>
+          <p class="small text-muted mt-3 mb-0">Source: pr_issue_single.jsonl</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-light">
+          <h2 class="h6 mb-0">Pull Requests by Month</h2>
+        </div>
+        <div class="card-body">
+          <div id="pr-detail-monthly" class="chart-placeholder"></div>
+          <p class="small text-muted mt-3 mb-0">Source: pr_detail.jsonl</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light">
+          <h2 class="h6 mb-0">Top Issue Labels</h2>
+        </div>
+        <div class="card-body">
+          <div id="issue-detail-labels" class="chart-placeholder"></div>
+          <p class="small text-muted mt-3 mb-0">Source: issue_detail.jsonl</p>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const mergedData = {{ merged_data | tojson }};
+      const prIssueData = {{ pr_issue | tojson }};
+      const prDetailData = {{ pr_detail | tojson }};
+      const issueDetailData = {{ issue_detail | tojson }};
+
+      function ensureData(elementId, conditionFn, plotFn) {
+        const container = document.getElementById(elementId);
+        if (!container) {
+          return;
+        }
+        if (conditionFn()) {
+          plotFn();
+        } else {
+          container.innerHTML = '<p class="text-muted">No data available for current filter.</p>';
+        }
+      }
+
+      ensureData('merged-top-repos', () => mergedData.top_repos && mergedData.top_repos.labels.length > 0, () => {
+        const trace = {
+          x: mergedData.top_repos.labels,
+          y: mergedData.top_repos.values,
+          type: 'bar',
+          marker: { color: '#0d6efd' }
+        };
+        const layout = {
+          margin: { t: 10, r: 0, l: 40, b: 80 },
+          xaxis: { title: 'Repository' },
+          yaxis: { title: 'PR Count' },
+          height: 350
+        };
+        Plotly.newPlot('merged-top-repos', [trace], layout, {responsive: true});
+      });
+
+      ensureData('merged-timeline', () => mergedData.timeline && mergedData.timeline.dates.length > 0, () => {
+        const trace = {
+          x: mergedData.timeline.dates,
+          y: mergedData.timeline.counts,
+          type: 'scatter',
+          mode: 'lines+markers',
+          marker: { color: '#20c997' }
+        };
+        const layout = {
+          margin: { t: 10, r: 0, l: 40, b: 80 },
+          xaxis: { title: 'Date' },
+          yaxis: { title: 'Pull Requests' },
+          height: 350
+        };
+        Plotly.newPlot('merged-timeline', [trace], layout, {responsive: true});
+      });
+
+      ensureData('pr-issue-repo-dist', () => prIssueData.closing_issue_distribution && prIssueData.closing_issue_distribution.labels.length > 0, () => {
+        const trace = {
+          labels: prIssueData.closing_issue_distribution.labels,
+          values: prIssueData.closing_issue_distribution.values,
+          type: 'pie',
+          hole: 0.4
+        };
+        const layout = {
+          margin: { t: 20, r: 0, l: 0, b: 20 },
+          height: 350
+        };
+        Plotly.newPlot('pr-issue-repo-dist', [trace], layout, {responsive: true});
+      });
+
+      ensureData('pr-detail-monthly', () => prDetailData.monthly_histogram && prDetailData.monthly_histogram.labels.length > 0, () => {
+        const trace = {
+          x: prDetailData.monthly_histogram.labels,
+          y: prDetailData.monthly_histogram.values,
+          type: 'bar',
+          marker: { color: '#fd7e14' }
+        };
+        const layout = {
+          margin: { t: 10, r: 0, l: 40, b: 80 },
+          xaxis: { title: 'Month' },
+          yaxis: { title: 'Pull Requests' },
+          height: 350
+        };
+        Plotly.newPlot('pr-detail-monthly', [trace], layout, {responsive: true});
+      });
+
+      ensureData('issue-detail-labels', () => issueDetailData.top_labels && issueDetailData.top_labels.labels.length > 0, () => {
+        const trace = {
+          x: issueDetailData.top_labels.labels,
+          y: issueDetailData.top_labels.values,
+          type: 'bar',
+          marker: { color: '#6f42c1' }
+        };
+        const layout = {
+          margin: { t: 10, r: 0, l: 40, b: 80 },
+          xaxis: { title: 'Label' },
+          yaxis: { title: 'Count' },
+          height: 350
+        };
+        Plotly.newPlot('issue-detail-labels', [trace], layout, {responsive: true});
+      });
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between mb-4 gap-3">
+    <div>
+      <h1 class="h3 mb-0">Dataset Dashboard</h1>
+      <p class="text-muted mb-0">Explore pull requests, issues, and merged insights.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('visualize') }}">View Visualizations</a>
+  </div>
+
+  <div class="row g-3 mb-4">
+    {% for name, count in summary.items() %}
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+          <div class="card-body">
+            <h6 class="card-subtitle mb-2 text-uppercase text-muted">{{ datasets[name].title }}</h6>
+            <p class="display-6 fw-semibold">{{ count }}</p>
+            <p class="mb-0 small text-muted">Total records</p>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="btn-group flex-wrap mb-3" role="group" aria-label="Dataset selectors">
+    {% for name, dataset in datasets.items() %}
+      <a
+        class="btn btn-sm btn-outline-primary {% if name == selected_dataset %}active{% endif %}"
+        href="{{ url_for('index', dataset=name) }}"
+      >
+        {{ dataset.title }}
+      </a>
+    {% endfor %}
+  </div>
+
+  <div class="table-responsive">
+    <table id="dataset-table" class="table table-striped table-hover align-middle">
+      <thead class="table-light">
+        <tr>
+          <th scope="col">Details</th>
+          {% for column in table_columns %}
+            <th scope="col">{{ column.replace('_', ' ')|title }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in table_records %}
+          <tr>
+            <td>
+              <a
+                class="btn btn-sm btn-primary"
+                href="{{ url_for('dataset_detail', dataset_name=selected_dataset, record_id=record['_id']) }}"
+              >
+                View
+              </a>
+            </td>
+            {% for column in table_columns %}
+              <td>{{ record.get(column) | display_value }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      $('#dataset-table').DataTable({
+        paging: true,
+        searching: true,
+        responsive: true,
+        order: []
+      });
+    });
+  </script>
+{% endblock %}
