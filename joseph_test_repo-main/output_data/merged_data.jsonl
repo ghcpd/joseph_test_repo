@@ -1,0 +1,4 @@
+{"id": "merge_1", "repo": "octocat/hello-world", "issue_number": 50, "issue_title": "Bug in greeting message", "pull_number": 101, "pull_title": "Fix critical bug", "created_at": "2023-01-10T12:00:00Z"}
+{"id": "merge_2", "repo": "octocat/hello-world", "issue_number": 51, "issue_title": "Docs missing for feature X", "pull_number": 102, "pull_title": "Improve documentation", "created_at": "2023-02-15T09:20:00Z"}
+{"id": "merge_3", "repo": "octo-repo/backend", "issue_number": 80, "issue_title": "Feature request: authentication", "pull_number": 201, "pull_title": "Add authentication", "created_at": "2023-01-20T18:05:00Z"}
+{"id": "merge_4", "repo": "octo-repo/backend", "issue_number": 81, "issue_title": "Refactor API handlers", "pull_number": 202, "pull_title": "Refactor API handlers", "created_at": "2023-03-05T14:45:00Z"}

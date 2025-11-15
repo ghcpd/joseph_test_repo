@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h4 mb-1">Interactive Visualizations</h1>
+      <p class="text-muted mb-0">Use the form to filter charts by repository name.</p>
+    </div>
+    <form class="d-flex gap-2" method="get">
+      <input
+        type="text"
+        class="form-control"
+        name="repo"
+        placeholder="Filter by repository (e.g., octocat/hello-world)"
+        value="{{ repo_filter or '' }}"
+      />
+      <button type="submit" class="btn btn-primary">Apply</button>
+      <a href="{{ url_for('visualize') }}" class="btn btn-outline-secondary">Reset</a>
+    </form>
+  </div>
+
+  {% if repo_filter %}
+    <div class="alert alert-info">Showing charts filtered by repository: <strong>{{ repo_filter }}</strong></div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h5">Top Repositories by PR Count</h2>
+          <div id="merged-top-repos" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h5">PR Creation Timeline</h2>
+          <div id="merged-timeline" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h5">Closing Issue Distribution per Repository</h2>
+          <div id="pr-issue-distribution" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h5">Pull Requests by Month</h2>
+          <div id="pr-detail-histogram" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h5">Top Issue Labels</h2>
+          <div id="issue-labels" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    window.repoFilter = "{{ repo_filter or '' }}";
+  </script>
+  <script>
+    async function loadDatasetAggregations(dataset) {
+      const url = new URL(`/api/${dataset}`, window.location.origin);
+      if (window.repoFilter) {
+        url.searchParams.set('repo', window.repoFilter);
+      }
+      const response = await fetch(url, { cache: 'no-cache' });
+      if (!response.ok) {
+        throw new Error('Failed to load dataset');
+      }
+      return response.json();
+    }
+
+    function renderMergedCharts(aggregations) {
+      const topRepos = aggregations.top_repos || [];
+      const repoNames = topRepos.map(item => item.repo || 'Unknown');
+      const repoCounts = topRepos.map(item => item.count || 0);
+      Plotly.newPlot('merged-top-repos', [{
+        x: repoNames,
+        y: repoCounts,
+        type: 'bar',
+        marker: { color: '#0d6efd' }
+      }], {
+        margin: { t: 30, l: 40, r: 10, b: 80 },
+        xaxis: { title: 'Repository', automargin: true },
+        yaxis: { title: 'PR Count', rangemode: 'tozero' }
+      });
+
+      const timeline = aggregations.timeline || [];
+      Plotly.newPlot('merged-timeline', [{
+        x: timeline.map(item => item.date),
+        y: timeline.map(item => item.count),
+        type: 'scatter',
+        mode: 'lines+markers',
+        marker: { color: '#198754' }
+      }], {
+        margin: { t: 30, l: 40, r: 10, b: 80 },
+        xaxis: { title: 'Date' },
+        yaxis: { title: 'PRs', rangemode: 'tozero' }
+      });
+    }
+
+    function renderPrIssueChart(aggregations) {
+      const distribution = aggregations.closing_distribution || [];
+      Plotly.newPlot('pr-issue-distribution', [{
+        x: distribution.map(item => item.repo || 'Unknown'),
+        y: distribution.map(item => item.closing_count || 0),
+        type: 'bar',
+        marker: { color: '#dc3545' }
+      }], {
+        margin: { t: 30, l: 40, r: 10, b: 80 },
+        xaxis: { title: 'Repository' },
+        yaxis: { title: 'Closing Issue Count', rangemode: 'tozero' }
+      });
+    }
+
+    function renderPrDetailHistogram(aggregations) {
+      const histogram = aggregations.monthly_histogram || [];
+      Plotly.newPlot('pr-detail-histogram', [{
+        x: histogram.map(item => item.month),
+        y: histogram.map(item => item.count || 0),
+        type: 'bar',
+        marker: { color: '#6f42c1' }
+      }], {
+        margin: { t: 30, l: 40, r: 10, b: 80 },
+        xaxis: { title: 'Month', tickangle: -30 },
+        yaxis: { title: 'PR Count', rangemode: 'tozero' }
+      });
+    }
+
+    function renderIssueLabels(aggregations) {
+      const labels = aggregations.top_labels || [];
+      Plotly.newPlot('issue-labels', [{
+        x: labels.map(item => item.label || 'Unknown'),
+        y: labels.map(item => item.count || 0),
+        type: 'bar',
+        marker: { color: '#fd7e14' }
+      }], {
+        margin: { t: 30, l: 40, r: 10, b: 80 },
+        xaxis: { title: 'Label' },
+        yaxis: { title: 'Usage', rangemode: 'tozero' }
+      });
+    }
+
+    async function initCharts() {
+      try {
+        const mergedData = await loadDatasetAggregations('merged_data');
+        renderMergedCharts(mergedData.aggregations || {});
+
+        const prIssueData = await loadDatasetAggregations('pr_issue');
+        renderPrIssueChart(prIssueData.aggregations || {});
+
+        const prDetailData = await loadDatasetAggregations('pr_detail');
+        renderPrDetailHistogram(prDetailData.aggregations || {});
+
+        const issueDetailData = await loadDatasetAggregations('issue_detail');
+        renderIssueLabels(issueDetailData.aggregations || {});
+      } catch (error) {
+        console.error('Failed to initialize charts', error);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initCharts);
+  </script>
+{% endblock %}

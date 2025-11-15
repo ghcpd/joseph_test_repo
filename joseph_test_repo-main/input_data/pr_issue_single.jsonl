@@ -1,0 +1,4 @@
+{"id": "pr_issue_1", "repo": "octocat/hello-world", "pull_number": 101, "issue_numbers": [50], "closing_issue": [50], "title": "Fix critical bug", "created_at": "2023-01-08T10:30:00Z"}
+{"id": "pr_issue_2", "repo": "octocat/hello-world", "pull_number": 102, "issue_numbers": [51], "closing_issue": [51], "title": "Improve documentation", "created_at": "2023-02-10T08:15:00Z"}
+{"id": "pr_issue_3", "repo": "octo-repo/backend", "pull_number": 201, "issue_numbers": [80, 81], "closing_issue": [80, 81], "title": "Add authentication", "created_at": "2023-01-18T15:45:00Z"}
+{"id": "pr_issue_4", "repo": "octo-repo/backend", "pull_number": 202, "issue_numbers": [], "closing_issue": [], "title": "Refactor API handlers", "created_at": "2023-03-01T11:00:00Z"}

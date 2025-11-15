@@ -1,0 +1,4 @@
+{"id": "pr_101", "number": 101, "repo": "octocat/hello-world", "title": "Fix critical bug", "user": {"login": "devalice"}, "created_at": "2023-01-10T12:00:00Z", "merged": true, "related_issues": [50]}
+{"id": "pr_102", "number": 102, "repo": "octocat/hello-world", "title": "Improve documentation", "user": {"login": "devbob"}, "created_at": "2023-02-15T09:20:00Z", "merged": false, "related_issues": [51]}
+{"id": "pr_201", "number": 201, "repo": "octo-repo/backend", "title": "Add authentication", "user": {"login": "devcarol"}, "created_at": "2023-01-20T18:05:00Z", "merged": true, "related_issues": [80, 81]}
+{"id": "pr_202", "number": 202, "repo": "octo-repo/backend", "title": "Refactor API handlers", "user": {"login": "devdave"}, "created_at": "2023-03-05T14:45:00Z", "merged": false, "related_issues": []}
