@@ -1,0 +1,14 @@
+.chart-container {
+  min-height: 320px;
+}
+
+@media (max-width: 576px) {
+  .chart-container {
+    min-height: 260px;
+  }
+}
+
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}

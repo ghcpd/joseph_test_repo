@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="row g-3 mb-4">
+    {% for name, total in dataset_summary.items() %}
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card shadow-sm h-100 {% if selected_dataset == name %}border-primary{% endif %}">
+          <div class="card-body">
+            <h5 class="card-title text-primary">{{ dataset_config[name]["title"] }}</h5>
+            <p class="card-text display-6">{{ total }}</p>
+            <a href="{{ url_for('index', dataset=name) }}" class="btn btn-outline-primary btn-sm">View</a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div>
+      <h2 class="h4 mb-0">{{ dataset_config[selected_dataset]["title"] }}</h2>
+      {% if repo_filter %}
+        <small class="text-muted">Filtered by repository: {{ repo_filter }}</small>
+      {% endif %}
+    </div>
+    <div class="btn-group btn-group-sm" role="group" aria-label="Dataset selector">
+      {% for name, config in dataset_config.items() %}
+        <a
+          href="{{ url_for('index', dataset=name, repo=repo_filter) }}"
+          class="btn btn-outline-secondary {% if selected_dataset == name %}active{% endif %}"
+          data-dataset="{{ name }}"
+        >
+          {{ config["title"] }}
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table id="dataset-table" class="table table-striped" style="width:100%">
+          <thead>
+            <tr></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    window.datasetMeta = {{ dataset_meta | tojson }};
+    window.datasetSummary = {{ dataset_summary | tojson }};
+    window.selectedDataset = "{{ selected_dataset }}";
+    window.repoFilter = "{{ repo_filter or '' }}";
+  </script>
+{% endblock %}

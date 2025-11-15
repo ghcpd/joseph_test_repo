@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <h1 class="h4">{{ dataset_config[dataset_name]["title"] }} &ndash; Record Details</h1>
+      <p class="text-muted mb-0">Record ID: {{ record.get(dataset_config[dataset_name]["key_field"]) }}</p>
+    </div>
+    <a class="btn btn-outline-primary" href="{{ url_for('index', dataset=dataset_name) }}">Back to dataset</a>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h2 class="h5">Fields</h2>
+      <div class="row g-3">
+        {% for field, value in record.items() %}
+          <div class="col-12 col-md-6">
+            <div class="border rounded p-3 h-100 bg-light">
+              <strong class="d-block text-muted small mb-1">{{ field }}</strong>
+              {% if value is mapping or value is iterable and value is not string %}
+                <pre class="mb-0">{{ value | tojson(indent=2) }}</pre>
+              {% else %}
+                <span>{{ value if value is not none else "N/A" }}</span>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h2 class="h5 mb-3">Related Records</h2>
+      {% set has_related = false %}
+      {% for related_name, items in related_records.items() %}
+        {% if items %}
+          {% set has_related = true %}
+          <div class="mb-4">
+            <h3 class="h6 text-primary">{{ dataset_config[related_name]["title"] }}</h3>
+            <div class="list-group">
+              {% for item in items %}
+                {% set key_field = dataset_config[related_name]["key_field"] %}
+                <a
+                  class="list-group-item list-group-item-action"
+                  href="{{ url_for('dataset_detail', dataset_name=related_name, record_id=item["record"].get(key_field)) }}"
+                >
+                  <div class="d-flex justify-content-between flex-wrap">
+                    <span>
+                      {{ item["record"].get("title") or item["record"].get("issue_title") or item["record"].get("pull_title") or item["record"].get(key_field) }}
+                    </span>
+                    <small class="text-muted">ID: {{ item["record"].get(key_field) }}</small>
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+      {% if not has_related %}
+        <p class="text-muted mb-0">No related records found.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
