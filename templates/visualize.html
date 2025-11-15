@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-body">
+    <form class="row gy-2 gx-3 align-items-center" method="get" action="{{ url_for('visualize') }}">
+      <div class="col-auto">
+        <label class="form-label" for="repo">Filter by repository</label>
+        <select class="form-select" id="repo" name="repo">
+          <option value="" {% if not repo_filter %}selected{% endif %}>All repositories</option>
+          {% for repo in available_repos %}
+          <option value="{{ repo }}" {% if repo_filter == repo %}selected{% endif %}>{{ repo }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto align-self-end">
+        <button type="submit" class="btn btn-primary">Apply</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">Top Repositories by PR Count</div>
+      <div class="card-body">
+        <div id="repo-count-chart" class="chart-container"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">PR Creation Timeline</div>
+      <div class="card-body">
+        <div id="time-series-chart" class="chart-container"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">Closing Issues by Repository</div>
+      <div class="card-body">
+        <div id="closing-issue-chart" class="chart-container"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="card h-100">
+      <div class="card-header">PRs by Month</div>
+      <div class="card-body">
+        <div id="pr-histogram-chart" class="chart-container"></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="card h-100">
+      <div class="card-header">Top Issue Labels</div>
+      <div class="card-body">
+        <div id="label-chart" class="chart-container"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  const repoCounts = {{ repo_counts | tojson }};
+  const timeSeries = {{ time_series | tojson }};
+  const closingIssues = {{ closing_issue_counts | tojson }};
+  const prHistogram = {{ histogram | tojson }};
+  const labelCounts = {{ label_counts | tojson }};
+
+  if (repoCounts.length) {
+    Plotly.newPlot('repo-count-chart', [{
+      x: repoCounts.map(item => item.repo),
+      y: repoCounts.map(item => item.count),
+      type: 'bar',
+      marker: {color: '#0d6efd'}
+    }], {margin: {t: 30}, yaxis: {title: 'PRs'}, xaxis: {title: 'Repository'}});
+  } else {
+    document.getElementById('repo-count-chart').innerHTML = '<p class="text-muted">No data available.</p>';
+  }
+
+  if (timeSeries.length) {
+    Plotly.newPlot('time-series-chart', [{
+      x: timeSeries.map(item => item.date),
+      y: timeSeries.map(item => item.count),
+      type: 'scatter',
+      mode: 'lines+markers',
+      line: {shape: 'spline', color: '#198754'}
+    }], {margin: {t: 30}, yaxis: {title: 'PRs'}, xaxis: {title: 'Date'}});
+  } else {
+    document.getElementById('time-series-chart').innerHTML = '<p class="text-muted">No data available.</p>';
+  }
+
+  if (closingIssues.length) {
+    Plotly.newPlot('closing-issue-chart', [{
+      x: closingIssues.map(item => item.repo),
+      y: closingIssues.map(item => item.count),
+      type: 'bar',
+      marker: {color: '#6610f2'}
+    }], {margin: {t: 30}, yaxis: {title: 'Closing Issues'}, xaxis: {title: 'Repository'}});
+  } else {
+    document.getElementById('closing-issue-chart').innerHTML = '<p class="text-muted">No data available.</p>';
+  }
+
+  if (prHistogram.length) {
+    Plotly.newPlot('pr-histogram-chart', [{
+      x: prHistogram.map(item => item.month),
+      y: prHistogram.map(item => item.count),
+      type: 'bar',
+      marker: {color: '#fd7e14'}
+    }], {margin: {t: 30}, yaxis: {title: 'PRs'}, xaxis: {title: 'Month'}});
+  } else {
+    document.getElementById('pr-histogram-chart').innerHTML = '<p class="text-muted">No data available.</p>';
+  }
+
+  if (labelCounts.length) {
+    Plotly.newPlot('label-chart', [{
+      labels: labelCounts.map(item => item.label),
+      values: labelCounts.map(item => item.count),
+      type: 'pie'
+    }], {margin: {t: 30}});
+  } else {
+    document.getElementById('label-chart').innerHTML = '<p class="text-muted">No data available.</p>';
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,5 @@
+{"id": 3001, "number": 45, "repo": "octocat/hello-world", "title": "Update documentation index", "state": "closed", "created_at": "2023-03-20T10:00:00Z", "labels": [{"name": "documentation"}, {"name": "good first issue"}], "closing_prs": [10]}
+{"id": 3002, "number": 46, "repo": "octocat/hello-world", "title": "Helper throws exception", "state": "closed", "created_at": "2023-05-30T11:45:00Z", "labels": [{"name": "bug"}, {"name": "urgent"}], "closing_prs": [11]}
+{"id": 3003, "number": 55, "repo": "octocat/Spoon-Knife", "title": "Add endpoint tests", "state": "open", "created_at": "2024-01-05T09:15:00Z", "labels": [{"name": "enhancement"}], "closing_prs": [21]}
+{"id": 3004, "number": 15, "repo": "ghcpd/flask-app", "title": "Cache performance issue", "state": "closed", "created_at": "2023-08-28T16:40:00Z", "labels": [{"name": "performance"}, {"name": "backend"}], "closing_prs": [5]}
+{"id": 3005, "number": 16, "repo": "ghcpd/flask-app", "title": "Add graphs for analytics", "state": "open", "created_at": "2023-10-25T12:30:00Z", "labels": [{"name": "analytics"}, {"name": "frontend"}], "closing_prs": [6]}
