@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub PR / Issue Viewer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>GitHub PR / Issue Viewer</h1>
+    <form id="repo-form" class="input-group">
+      <label for="repo-input">Repository URL</label>
+      <div class="repo-input-row">
+        <input type="text" id="repo-input" placeholder="https://github.com/user/repo" required>
+        <button type="submit" id="fetch-button">Fetch</button>
+      </div>
+      <div class="type-row">
+        <label for="type-select">Select Data Type</label>
+        <select id="type-select">
+          <option value="prs">Pull Requests</option>
+          <option value="issues">Issues</option>
+        </select>
+      </div>
+    </form>
+
+    <div class="selection-group">
+      <label for="item-select">Select an item</label>
+      <select id="item-select" size="8"></select>
+      <div class="summary" id="summary"></div>
+    </div>
+
+    <div class="detail-panel" id="detail-panel">
+      <h2 id="detail-title">Select a pull request or issue</h2>
+      <div class="grid">
+        <div><strong>Author:</strong> <span id="detail-author">—</span></div>
+        <div><strong>Status:</strong> <span id="detail-status">—</span></div>
+        <div><strong>Created:</strong> <span id="detail-created">—</span></div>
+        <div><strong>Updated:</strong> <span id="detail-updated">—</span></div>
+        <div id="labels"></div>
+      </div>
+      <article id="detail-body"></article>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="script.js"></script>
+</body>
+</html>
