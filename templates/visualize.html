@@ -1,0 +1,264 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-4">
+    <div>
+      <h1 class="mb-0">Visualizations</h1>
+      <p class="text-muted">Interactive charts summarizing pull requests and issues.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="{{ url_for('index') }}">&larr; Back to Dashboard</a>
+  </div>
+
+  <form method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-sm-6 col-md-4">
+      <label for="repo" class="form-label">Repository filter</label>
+      <select id="repo" name="repo" class="form-select">
+        <option value="" {% if not repo_filter %}selected{% endif %}>All repositories</option>
+        {% for repo_name in repositories %}
+          <option value="{{ repo_name }}" {% if repo_filter == repo_name %}selected{% endif %}>{{ repo_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary" type="submit">Apply</button>
+    </div>
+    <div class="col-auto">
+      <a class="btn btn-outline-secondary" href="{{ url_for('visualize') }}">Reset</a>
+    </div>
+  </form>
+
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">
+          <h5 class="mb-0">Top Repositories by PR Count</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="repo-count-chart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">
+          <h5 class="mb-0">PR Creation Timeline</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="timeline-chart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">
+          <h5 class="mb-0">Closing Issue Distribution</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="closing-issue-chart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">
+          <h5 class="mb-0">PRs by Month</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="monthly-pr-chart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card shadow-sm h-100">
+        <div class="card-header">
+          <h5 class="mb-0">Top Issue Labels</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="label-chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script>
+    const repoFilter = {{ repo_filter|tojson }};
+
+    async function fetchAggregation(dataset, aggregation) {
+      const params = new URLSearchParams();
+      if (repoFilter) {
+        params.set('repo', repoFilter);
+      }
+      if (aggregation) {
+        params.set('aggregation', aggregation);
+      }
+      const response = await fetch(`/api/${dataset}?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data for ${dataset}`);
+      }
+      const payload = await response.json();
+      return payload.data || { labels: [], values: [] };
+    }
+
+    function buildChart(ctx, chartType, chartData, chartOptions = {}) {
+      const defaultOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: chartType !== 'line' },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.dataset.label || '';
+                const value = context.formattedValue;
+                return label ? `${label}: ${value}` : value;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            precision: 0
+          }
+        }
+      };
+      return new Chart(ctx, {
+        type: chartType,
+        data: chartData,
+        options: { ...defaultOptions, ...chartOptions }
+      });
+    }
+
+    async function loadCharts() {
+      try {
+        const repoCounts = await fetchAggregation('merged_data', 'repo_counts');
+        const timeline = await fetchAggregation('merged_data', 'timeline');
+        const closingIssues = await fetchAggregation('pr_issue', 'closing_issue');
+        const monthlyCounts = await fetchAggregation('pr_detail', 'monthly_counts');
+        const labelCounts = await fetchAggregation('issue_detail', 'label_counts');
+
+        const palette = [
+          '#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545',
+          '#fd7e14', '#ffc107', '#198754', '#20c997', '#0dcaf0'
+        ];
+
+        const repoCountCtx = document.getElementById('repo-count-chart');
+        if (repoCounts.labels && repoCounts.labels.length) {
+          new Chart(repoCountCtx, {
+            type: 'bar',
+            data: {
+              labels: repoCounts.labels,
+              datasets: [{
+                label: 'PR Count',
+                data: repoCounts.values,
+                backgroundColor: palette.slice(0, repoCounts.labels.length),
+                borderColor: '#0d6efd',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true, precision: 0 } }
+            }
+          });
+        }
+
+        const timelineCtx = document.getElementById('timeline-chart');
+        if (timeline.labels && timeline.labels.length) {
+          new Chart(timelineCtx, {
+            type: 'line',
+            data: {
+              labels: timeline.labels,
+              datasets: [{
+                label: 'PRs Created',
+                data: timeline.values,
+                backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                borderColor: '#0d6efd',
+                tension: 0.3,
+                fill: true
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true, precision: 0 } }
+            }
+          });
+        }
+
+        const closingCtx = document.getElementById('closing-issue-chart');
+        if (closingIssues.labels && closingIssues.labels.length) {
+          new Chart(closingCtx, {
+            type: 'bar',
+            data: {
+              labels: closingIssues.labels,
+              datasets: [{
+                label: 'Closing Issues',
+                data: closingIssues.values,
+                backgroundColor: palette.slice(0, closingIssues.labels.length),
+                borderColor: '#198754',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true, precision: 0 } }
+            }
+          });
+        }
+
+        const monthlyCtx = document.getElementById('monthly-pr-chart');
+        if (monthlyCounts.labels && monthlyCounts.labels.length) {
+          new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+              labels: monthlyCounts.labels,
+              datasets: [{
+                label: 'PRs',
+                data: monthlyCounts.values,
+                backgroundColor: palette.slice(0, monthlyCounts.labels.length),
+                borderColor: '#6f42c1',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true, precision: 0 } }
+            }
+          });
+        }
+
+        const labelCtx = document.getElementById('label-chart');
+        if (labelCounts.labels && labelCounts.labels.length) {
+          new Chart(labelCtx, {
+            type: 'bar',
+            data: {
+              labels: labelCounts.labels,
+              datasets: [{
+                label: 'Issues',
+                data: labelCounts.values,
+                backgroundColor: palette.slice(0, labelCounts.labels.length),
+                borderColor: '#d63384',
+                borderWidth: 1
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: { y: { beginAtZero: true, precision: 0 } }
+            }
+          });
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadCharts);
+  </script>
+{% endblock %}

@@ -1,0 +1,3 @@
+{"id": 1, "number": 12, "title": "Fix login bug", "repository_url": "https://api.github.com/repos/example/cool-project", "closing_issue": 101, "html_url": "https://github.com/example/cool-project/pull/12"}
+{"id": 2, "number": 34, "title": "Add new feature", "repository_url": "https://api.github.com/repos/example/cool-project", "closing_issue": 102, "html_url": "https://github.com/example/cool-project/pull/34"}
+{"id": 3, "number": 56, "title": "Improve performance", "repository_url": "https://api.github.com/repos/example/awesome-app", "closing_issue": 201, "html_url": "https://github.com/example/awesome-app/pull/56"}
