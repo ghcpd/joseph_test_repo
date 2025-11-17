@@ -1,0 +1,186 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f4f6f9;
+  color: #222;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.controls,
+.selection-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.field {
+  flex: 1 1 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+label span {
+  font-weight: 600;
+}
+
+input,
+select,
+button {
+  padding: 0.5rem 0.65rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #c7ccd1;
+  background: #fff;
+}
+
+button {
+  flex: 0 0 120px;
+  align-self: flex-end;
+  background: #2865f5;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+button:hover {
+  background: #1b4ccd;
+}
+
+button:disabled {
+  background: #91a4df;
+  cursor: not-allowed;
+}
+
+.details h2 {
+  margin-bottom: 0.75rem;
+}
+
+.card {
+  background: #fff;
+  padding: 1rem 1.2rem;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(20, 25, 35, 0.1);
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.card.empty {
+  color: #555;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.card p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.row span {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 0.2rem 0.55rem;
+  border-radius: 10px;
+  background: #eef1ff;
+  color: #3643b7;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.badge.status-open {
+  background: #d5f5ea;
+  color: #117a4d;
+}
+
+.badge.status-closed {
+  background: #fee1e7;
+  color: #811031;
+}
+
+.badge.status-merged {
+  background: #e0dcff;
+  color: #3e2aaa;
+}
+
+.badge.status-unknown {
+  background: #eceff4;
+  color: #394048;
+}
+
+.badge.bug {
+  background: #ffdede;
+  color: #8f2121;
+}
+
+.card.has-bug {
+  border: 2px solid #ff6666;
+  box-shadow: 0 0 15px rgba(255, 102, 102, 0.25);
+}
+
+.meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.92rem;
+  color: #444;
+}
+
+.meta-list span strong {
+  font-weight: 600;
+}
+
+footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  button {
+    width: 100%;
+    align-self: auto;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

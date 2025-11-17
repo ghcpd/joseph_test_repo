@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive GitHub Viewer</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>GitHub PR & Issue Viewer</h1>
+      <form id="repoForm" class="controls" autocomplete="off">
+        <label class="field">
+          <span>Repository URL</span>
+          <input
+            type="text"
+            id="repoInput"
+            placeholder="https://github.com/user/repo"
+            required
+          />
+        </label>
+        <label class="field">
+          <span>Data Type</span>
+          <select id="dataTypeSelect">
+            <option value="prs">Pull Requests</option>
+            <option value="issues">Issues</option>
+          </select>
+        </label>
+        <button type="submit" id="fetchButton">Fetch</button>
+      </form>
+
+      <section class="selection-panel">
+        <label class="field">
+          <span>Available Items</span>
+          <select id="itemSelect" disabled>
+            <option value="">Select an item...</option>
+          </select>
+        </label>
+      </section>
+
+      <section id="details" class="details">
+        <h2>Details</h2>
+        <div id="itemDetails" class="card empty">
+          <p>Choose a pull request or issue to see details.</p>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
