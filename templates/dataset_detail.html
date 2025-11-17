@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}{{ dataset_name|dataset_display_name }} Record{% endblock %}
+
+{% block content %}
+  <div class="mb-4">
+    <a class="btn btn-outline-secondary" href="{{ url_for('index', dataset=dataset_name) }}">Back to {{ dataset_name|dataset_display_name }}</a>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">{{ dataset_name|dataset_display_name }} Record Details</h5>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <tbody>
+            {% for key, value in record.items() %}
+              <tr>
+                <th scope="row" style="min-width: 200px;">{{ key|replace('_', ' ')|title }}</th>
+                <td>
+                  {% if value is mapping or value is sequence and value is not string %}
+                    <pre class="formatted-json mb-0">{{ value|format_value }}</pre>
+                  {% else %}
+                    {{ value|format_value }}
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <section>
+    <div class="card shadow-sm">
+      <div class="card-header">
+        <h5 class="mb-0">Related Data</h5>
+      </div>
+      <div class="card-body">
+        {% if not related %}
+          <p class="text-muted mb-0">No related records were found.</p>
+        {% else %}
+          <div class="row g-3">
+            {% for item in related %}
+              <div class="col-12 col-md-6">
+                <div class="card h-100 border-secondary">
+                  <div class="card-body">
+                    <h6 class="card-title">{{ item.label }}</h6>
+                    <p class="card-text text-muted mb-2">
+                      {{ item.dataset|dataset_display_name }}
+                    </p>
+                    <a class="btn btn-sm btn-primary" href="{{ record_detail_url(item.dataset, item.record) }}">View Details</a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+{% endblock %}

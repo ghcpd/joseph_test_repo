@@ -1,0 +1,3 @@
+{"repo": "example/repo-one", "issue_number": 501, "issue_title": "Users cannot login", "pull_number": 101, "pull_title": "Fix login bug", "created_at": "2023-06-01T10:15:00Z"}
+{"repo": "example/repo-two", "issue_number": 601, "issue_title": "Security update", "pull_number": 201, "pull_title": "Update dependencies", "created_at": "2023-05-20T09:00:00Z"}
+{"repo": "example/repo-one", "issue_number": 701, "issue_title": "Docs refresh", "pull_number": null, "pull_title": null, "created_at": "2023-04-10T08:00:00Z"}
