@@ -1,0 +1,13 @@
+{
+  "name": "33088e2f-0435-425b-bc46-27eeb5201ba5",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx http-server -c-1 -p 5173",
+    "test": "echo \"No automated tests are configured\" && exit 0"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "Interactive viewer for GitHub pull requests and issues"
+}
