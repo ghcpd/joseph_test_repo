@@ -1,0 +1,56 @@
+body {
+  background-color: #f5f7fb;
+}
+
+.summary-card {
+  border: none;
+  border-left: 4px solid #0d6efd;
+  transition: transform 0.2s ease-in-out;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+}
+
+.detail-field {
+  background-color: #f8f9fa;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  min-height: 120px;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: #495057;
+  display: block;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.detail-value {
+  color: #212529;
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+
+pre {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+}
+
+.table thead th {
+  background-color: #0d6efd;
+  color: #fff;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+.card-header {
+  font-weight: 600;
+}
