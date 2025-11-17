@@ -1,0 +1,3 @@
+{"id": 1, "repository_url": "https://api.github.com/repos/example/repo-one", "number": 101, "title": "Fix login bug", "closing_issue": 501}
+{"id": 2, "repository_url": "https://api.github.com/repos/example/repo-one", "number": 102, "title": "Improve layout", "closing_issue": null}
+{"id": 3, "repository_url": "https://api.github.com/repos/example/repo-two", "number": 201, "title": "Update dependencies", "closing_issue": 601}

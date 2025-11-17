@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Visualizations{% endblock %}
+
+{% block content %}
+  <section class="mb-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <form class="row g-3 align-items-center" method="get" action="{{ url_for('visualize') }}">
+          <div class="col-12 col-md-8">
+            <label class="form-label" for="repo">Filter by repository (optional)</label>
+            <input
+              type="text"
+              class="form-control"
+              id="repo"
+              name="repo"
+              value="{{ repo_filter or '' }}"
+              placeholder="example/repo-one"
+            >
+          </div>
+          <div class="col-12 col-md-4 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary">Apply Filter</button>
+            <a class="btn btn-outline-secondary" href="{{ url_for('visualize') }}">Clear</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Top Repositories by PR Count</h5>
+        </div>
+        <div class="card-body">
+          <div id="merged-top-repos" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">PR Creation Timeline</h5>
+        </div>
+        <div class="card-body">
+          <div id="merged-time-series" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Closing Issues per Repository</h5>
+        </div>
+        <div class="card-body">
+          <div id="pr-issue-closing" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Pull Requests by Month</h5>
+        </div>
+        <div class="card-body">
+          <div id="pr-detail-months" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card h-100 shadow-sm">
+        <div class="card-header">
+          <h5 class="mb-0">Top Issue Labels</h5>
+        </div>
+        <div class="card-body">
+          <div id="issue-detail-labels" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script>
+    const visualizationData = {{ visualization|tojson }};
+
+    function renderBarChart(elementId, labels, values, title) {
+      const element = document.getElementById(elementId);
+      if (!element) {
+        return;
+      }
+      if (!values || values.length === 0) {
+        element.innerHTML = '<p class="text-muted mb-0">No data available for this selection.</p>';
+        return;
+      }
+      Plotly.newPlot(
+        element,
+        [{
+          x: labels,
+          y: values,
+          type: 'bar',
+          marker: { color: '#0d6efd' }
+        }],
+        {
+          margin: { t: 30, l: 60, r: 20, b: 80 },
+          title: title,
+        },
+        { responsive: true }
+      );
+    }
+
+    function renderLineChart(elementId, labels, values, title) {
+      const element = document.getElementById(elementId);
+      if (!element) {
+        return;
+      }
+      if (!values || values.length === 0) {
+        element.innerHTML = '<p class="text-muted mb-0">No data available for this selection.</p>';
+        return;
+      }
+      Plotly.newPlot(
+        element,
+        [{
+          x: labels,
+          y: values,
+          mode: 'lines+markers',
+          line: { color: '#198754' }
+        }],
+        {
+          margin: { t: 30, l: 60, r: 20, b: 80 },
+          title: title,
+        },
+        { responsive: true }
+      );
+    }
+
+    renderBarChart(
+      'merged-top-repos',
+      visualizationData.merged_top_repos.labels,
+      visualizationData.merged_top_repos.values,
+      'Top Repositories by PR Count'
+    );
+
+    renderLineChart(
+      'merged-time-series',
+      visualizationData.merged_time_series.labels,
+      visualizationData.merged_time_series.values,
+      'Pull Requests Over Time'
+    );
+
+    renderBarChart(
+      'pr-issue-closing',
+      visualizationData.pr_issue_closing_distribution.labels,
+      visualizationData.pr_issue_closing_distribution.values,
+      'Closing Issues per Repository'
+    );
+
+    renderBarChart(
+      'pr-detail-months',
+      visualizationData.pr_detail_month_distribution.labels,
+      visualizationData.pr_detail_month_distribution.values,
+      'Pull Requests per Month'
+    );
+
+    renderBarChart(
+      'issue-detail-labels',
+      visualizationData.issue_detail_top_labels.labels,
+      visualizationData.issue_detail_top_labels.values,
+      'Top Issue Labels'
+    );
+  </script>
+{% endblock %}
