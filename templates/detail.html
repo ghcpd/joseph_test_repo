@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ dataset_display }} | Record Detail{% endblock %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">{{ dataset_display }}</h1>
+      <p class="text-muted mb-0">Record Identifier: {{ record['__id'] }}</p>
+    </div>
+    <a class="btn btn-outline-primary" href="{{ url_for('index') }}">&larr; Back to Dashboard</a>
+  </div>
+
+  <section class="table-wrapper">
+    <h2 class="h5">Record Details</h2>
+    <div class="row">
+      {% for key, value in record.items() if key != '__id' %}
+        <div class="col-12 col-md-6 detail-field">
+          <h6 class="text-muted text-uppercase small mb-1">{{ key.replace('_', ' ')|title }}</h6>
+          <div>{{ value|format_value }}</div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if related %}
+    <section class="mt-4">
+      <h2 class="h5 mb-3">Related Data</h2>
+      <div class="row g-3">
+        {% for group in related %}
+          <div class="col-12 col-md-6">
+            <div class="chart-card h-100">
+              <h3 class="h6 mb-3">
+                {{ group.label }}
+                {% if group.dataset %}
+                  {% set dataset_info = dataset_configs.get(group.dataset) %}
+                  {% if dataset_info %}
+                    <small class="text-muted">({{ dataset_info['display'] }})</small>
+                  {% endif %}
+                {% endif %}
+              </h3>
+              {% if group.records and group.records|length > 0 %}
+                <ul class="list-unstyled mb-0">
+                  {% for item in group.records %}
+                    <li class="mb-2">
+                      {% set display_title = item.get('title') or item.get('issue_title') or item.get('pull_title') or item.get('repo_full_name') or item.get('repo') or 'Record' %}
+                      <a
+                        class="text-decoration-none"
+                        href="{{ url_for('dataset_detail', dataset_name=group.dataset, record_id=item['__id']) }}"
+                      >
+                        {{ display_title }}
+                      </a>
+                      <div class="small text-muted">ID: {{ item['__id'] }}</div>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="text-muted mb-0">No related records found.</p>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+{% endblock %}
