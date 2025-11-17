@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-3">
+    <div>
+      <h2 class="mb-0">Dataset Visualizations</h2>
+      <p class="text-muted mb-0">Interactive insights for pull requests and issues.</p>
+    </div>
+    <form method="get" class="d-flex align-items-center mt-3 mt-md-0">
+      <label class="me-2" for="repo">Repository filter:</label>
+      <input
+        type="text"
+        class="form-control form-control-sm me-2"
+        name="repo"
+        id="repo"
+        placeholder="owner/name"
+        value="{{ repo_filter or '' }}"
+      />
+      <button class="btn btn-sm btn-primary" type="submit">Apply</button>
+      {% if repo_filter %}
+        <a class="btn btn-sm btn-outline-secondary ms-2" href="{{ url_for('visualize') }}">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if repo_filter %}
+    <div class="alert alert-info">Showing results filtered by repository: <strong>{{ repo_filter }}</strong></div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-12 col-xl-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-primary text-white">Top Repositories by PR Count</div>
+        <div class="card-body">
+          <canvas id="mergedRepoChart" height="300"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-secondary text-white">PR Creation Timeline</div>
+        <div class="card-body">
+          <canvas id="mergedTimeChart" height="300"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-success text-white">Closing Issues per Repository</div>
+        <div class="card-body">
+          <canvas id="prIssueChart" height="300"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-warning text-dark">Pull Requests by Month</div>
+        <div class="card-body">
+          <canvas id="prHistogramChart" height="300"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-info text-dark">Top Issue Labels</div>
+        <div class="card-body">
+          <canvas id="issueLabelChart" height="300"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script>
+    const mergedRepoData = {{ merged_repo_data|tojson }};
+    const mergedTimeData = {{ merged_time_data|tojson }};
+    const prIssueData = {{ pr_issue_data|tojson }};
+    const prHistogramData = {{ pr_histogram|tojson }};
+    const issueLabelData = {{ issue_labels|tojson }};
+
+    function renderChart(canvasId, config) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) {
+        return null;
+      }
+      return new Chart(ctx, config);
+    }
+
+    function buildBarConfig(labels, data, label, backgroundColor = 'rgba(54, 162, 235, 0.6)') {
+      return {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label,
+            data,
+            backgroundColor,
+            borderRadius: 6,
+          }],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+        },
+      };
+    }
+
+    renderChart('mergedRepoChart', buildBarConfig(mergedRepoData.labels, mergedRepoData.values, 'Pull Requests', 'rgba(99, 102, 241, 0.7)'));
+    renderChart('prIssueChart', buildBarConfig(prIssueData.labels, prIssueData.values, 'Closing Issues', 'rgba(34, 197, 94, 0.7)'));
+    renderChart('prHistogramChart', buildBarConfig(prHistogramData.labels, prHistogramData.values, 'PRs per Month', 'rgba(251, 191, 36, 0.7)'));
+    renderChart('issueLabelChart', buildBarConfig(issueLabelData.labels, issueLabelData.values, 'Top Labels', 'rgba(14, 165, 233, 0.7)'));
+
+    renderChart('mergedTimeChart', {
+      type: 'line',
+      data: {
+        labels: mergedTimeData.labels,
+        datasets: [{
+          label: 'PRs Created',
+          data: mergedTimeData.values,
+          borderColor: 'rgba(59, 130, 246, 1)',
+          tension: 0.2,
+          fill: true,
+          backgroundColor: 'rgba(59, 130, 246, 0.2)',
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            precision: 0,
+          },
+        },
+      },
+    });
+  </script>
+{% endblock %}

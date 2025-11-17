@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="mb-4">
+    <a href="{{ url_for('index', dataset=dataset_name) }}" class="btn btn-link">&larr; Back to {{ dataset_titles.get(dataset_name, dataset_title) }}</a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-7">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">{{ dataset_title }}</h4>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            {% for key, value in record.items() %}
+              <div class="col-12 col-md-6">
+                <div class="detail-field">
+                  <span class="detail-label">{{ key|replace('_', ' ')|title }}</span>
+                  <div class="detail-value">
+                    {% if value is mapping or (value is iterable and not (value is string)) %}
+                      <pre class="mb-0">{{ value|render_value }}</pre>
+                    {% else %}
+                      {{ value|render_value }}
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-5">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-secondary text-white">
+          <h5 class="mb-0">Related Data</h5>
+        </div>
+        <div class="card-body">
+          {% if related %}
+            {% for section in related %}
+              <div class="mb-4">
+                <h6>{{ section.title }}</h6>
+                <ul class="list-group list-group-flush">
+                  {% for item in section.items %}
+                    <li class="list-group-item px-0">
+                      <a href="{{ url_for('dataset_detail', dataset_name=item.dataset, record_id=item.safe_id) }}">{{ item.label }}</a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted mb-0">No related records found.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
