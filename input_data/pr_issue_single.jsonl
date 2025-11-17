@@ -1,0 +1,3 @@
+{"id": 1, "repo": "octocat/Hello-World", "pull_number": 1, "closing_issue": 101, "title": "Improve README", "state": "open"}
+{"id": 2, "repo": "octocat/Hello-World", "pull_number": 2, "closing_issue": 102, "title": "Fix bug", "state": "closed"}
+{"id": 3, "repo": "example/Project", "pull_number": 10, "closing_issue": 301, "title": "Add feature", "state": "open"}
