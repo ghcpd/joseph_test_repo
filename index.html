@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GitHub PR & Issue Viewer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <h1>GitHub Pull Request &amp; Issue Explorer</h1>
+        <p>Enter a repository URL to fetch pull requests or issues and inspect their details.</p>
+      </header>
+
+      <main class="app-content">
+        <section class="controls">
+          <form id="repository-form" class="control-grid" novalidate>
+            <label class="full-width" for="repository-url">Repository URL</label>
+            <div class="full-width url-row">
+              <input
+                id="repository-url"
+                type="url"
+                name="repository-url"
+                placeholder="https://github.com/owner/repository"
+                required
+              />
+              <button type="submit" class="primary">Load Repository</button>
+            </div>
+
+            <label for="data-type">Select data type</label>
+            <select id="data-type" name="data-type">
+              <option value="pulls">Pull Requests</option>
+              <option value="issues">Issues</option>
+            </select>
+
+            <label for="item-select">Pull Requests / Issues</label>
+            <select id="item-select" name="item-select" disabled>
+              <option value="">Select an item</option>
+            </select>
+          </form>
+
+          <div id="status-message" role="status" aria-live="polite" class="status-message"></div>
+        </section>
+
+        <section class="details" aria-live="polite">
+          <h2>Details</h2>
+          <div id="item-details" class="details-body">
+            <p class="placeholder">Select a pull request or issue to view its details.</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="detail-template">
+      <article>
+        <h3 data-field="title"></h3>
+        <dl>
+          <div class="pair">
+            <dt>Author</dt>
+            <dd data-field="author"></dd>
+          </div>
+          <div class="pair">
+            <dt>Status</dt>
+            <dd data-field="status"></dd>
+          </div>
+          <div class="pair date-pair">
+            <dt>Created</dt>
+            <dd data-field="created"></dd>
+          </div>
+          <div class="pair date-pair">
+            <dt>Updated</dt>
+            <dd data-field="updated"></dd>
+          </div>
+        </dl>
+        <section class="body-content">
+          <h4>Description</h4>
+          <div data-field="body" class="markdown-body"></div>
+        </section>
+      </article>
+    </template>
+
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
