@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="card-title">{{ dataset_title }}</h5>
+      <p class="text-muted">Record identifier: {{ record['_record_id'] if record['_record_id'] is defined else 'N/A' }}</p>
+      <div class="row">
+        {% for key, value in record.items() %}
+          <div class="col-12 col-md-6 mb-3">
+            <strong>{{ key|replace('_', ' ')|title }}</strong>
+            <pre class="value-block">{{ value }}</pre>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {% if related %}
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Related Data</h5>
+        {% for name, items in related.items() %}
+          <div class="mb-3">
+            <h6>{{ datasets[name]['title'] if datasets[name] else name|replace('_', ' ')|title }}</h6>
+            <ul class="list-unstyled mb-0">
+              {% for item in items %}
+                <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
