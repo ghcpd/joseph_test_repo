@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="mb-3">
+    <a class="btn btn-outline-secondary" href="{{ url_for('index', dataset=dataset_name) }}">&larr; Back to {{ dataset_name.replace('_', ' ').title() }}</a>
+  </div>
+  <div class="card shadow-sm mb-4">
+    <div class="card-header">
+      <h5 class="mb-0">{{ dataset_name.replace('_', ' ').title() }} Record</h5>
+      <small class="text-muted">Record ID: {{ record_id }}</small>
+    </div>
+    <div class="card-body">
+      {% for item in items %}
+        <div class="mb-4">
+          <h6 class="text-uppercase text-muted">{{ item.key.replace('_', ' ') }}</h6>
+          {% if item.is_complex %}
+            <pre class="json-preview">{{ item.value|format_value }}</pre>
+          {% else %}
+            <p class="fs-5">{{ item.value|format_value }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0">Related Data</h5>
+    </div>
+    <div class="card-body">
+      {% if related %}
+        <ul class="list-group list-group-flush">
+          {% for item in related %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>{{ item.title }}</span>
+              <a class="btn btn-sm btn-outline-primary" href="{{ item.url }}">View</a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="mb-0 text-muted">No related records found.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
