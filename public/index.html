@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GitHub PR/Issue Viewer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>GitHub PR/Issue Viewer</h1>
+      <form id="lookup-form" class="controls">
+        <label for="repo-input">GitHub Repository URL</label>
+        <div class="repo-row">
+          <input id="repo-input" type="url" placeholder="https://github.com/user/repo" required />
+          <button type="submit">Fetch</button>
+        </div>
+        <label for="type-select">Data Type</label>
+        <select id="type-select">
+          <option value="prs">Pull Requests</option>
+          <option value="issues">Issues</option>
+        </select>
+        <label for="item-select">Available Items</label>
+        <select id="item-select" disabled>
+          <option value="">Select a repository first</option>
+        </select>
+      </form>
+      <section id="details" class="details hidden">
+        <h2 id="details-title">Details</h2>
+        <dl>
+          <div>
+            <dt>Author</dt>
+            <dd id="details-author"></dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd id="details-status"></dd>
+          </div>
+          <div>
+            <dt>Created At</dt>
+            <dd id="details-created"></dd>
+          </div>
+          <div>
+            <dt>Updated At</dt>
+            <dd id="details-updated"></dd>
+          </div>
+        </dl>
+        <article id="details-body"></article>
+      </section>
+    </main>
+    <script src="app.js" defer></script>
+  </body>
+</html>
