@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Data Visualizations{% endblock %}
+{% block content %}
+  <h1 class="mb-4">Interactive Visualizations</h1>
+  <form class="row g-3 align-items-end mb-4" method="get" action="{{ url_for('visualize') }}">
+    <div class="col-12 col-md-4">
+      <label class="form-label" for="repo">Repository Filter</label>
+      <select class="form-select" id="repo" name="repo">
+        <option value="">All Repositories</option>
+        {% for repo in repos %}
+          <option value="{{ repo }}" {% if repo_filter == repo %}selected{% endif %}>
+            {{ repo }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-3">
+      <button class="btn btn-primary w-100" type="submit">Apply Filter</button>
+    </div>
+    <div class="col-12 col-md-3">
+      <a class="btn btn-outline-secondary w-100" href="{{ url_for('visualize') }}">Reset</a>
+    </div>
+  </form>
+
+  <section class="chart-card">
+    <h2 class="h5">Top Repositories by Pull Request Count</h2>
+    <div id="mergedRepoChart" style="height: 360px"></div>
+  </section>
+
+  <section class="chart-card">
+    <h2 class="h5">Pull Requests Over Time</h2>
+    <div id="mergedTimeSeries" style="height: 360px"></div>
+  </section>
+
+  <section class="chart-card">
+    <h2 class="h5">Closing Issues per Repository (PR Issue Data)</h2>
+    <div id="prIssueDistribution" style="height: 360px"></div>
+  </section>
+
+  <section class="chart-card">
+    <h2 class="h5">Monthly Pull Request Activity</h2>
+    <div id="prDetailHistogram" style="height: 360px"></div>
+  </section>
+
+  <section class="chart-card">
+    <h2 class="h5">Top Issue Labels</h2>
+    <div id="issueLabelChart" style="height: 360px"></div>
+  </section>
+{% endblock %}
+{% block scripts %}
+  {{ super() }}
+  <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+  <script>
+    const aggregations = {{ aggregations | tojson }};
+
+    const renderBarChart = (elementId, xValues, yValues, layoutOverrides = {}) => {
+      const element = document.getElementById(elementId);
+      if (!element) {
+        return;
+      }
+      if (!xValues || xValues.length === 0) {
+        element.innerHTML = '<p class="text-muted">No data available for the current filter.</p>';
+        return;
+      }
+      Plotly.newPlot(
+        element,
+        [
+          {
+            type: 'bar',
+            x: xValues,
+            y: yValues,
+            marker: { color: '#0d6efd' },
+          },
+        ],
+        Object.assign(
+          {
+            margin: { t: 40, r: 20, b: 80, l: 50 },
+            xaxis: { automargin: true },
+            yaxis: { automargin: true },
+          },
+          layoutOverrides
+        ),
+        { responsive: true }
+      );
+    };
+
+    const renderLineChart = (elementId, xValues, yValues) => {
+      const element = document.getElementById(elementId);
+      if (!element) {
+        return;
+      }
+      if (!xValues || xValues.length === 0) {
+        element.innerHTML = '<p class="text-muted">No data available for the current filter.</p>';
+        return;
+      }
+      Plotly.newPlot(
+        element,
+        [
+          {
+            type: 'scatter',
+            mode: 'lines+markers',
+            x: xValues,
+            y: yValues,
+            line: { color: '#198754', width: 3 },
+            marker: { size: 6 },
+          },
+        ],
+        {
+          margin: { t: 40, r: 20, b: 60, l: 50 },
+          xaxis: { title: 'Date' },
+          yaxis: { title: 'Pull Requests' },
+        },
+        { responsive: true }
+      );
+    };
+
+    renderBarChart(
+      'mergedRepoChart',
+      aggregations.merged_repo_counts.repos,
+      aggregations.merged_repo_counts.counts,
+      { xaxis: { title: 'Repository' }, yaxis: { title: 'Pull Requests' } }
+    );
+
+    renderLineChart(
+      'mergedTimeSeries',
+      aggregations.merged_time_series.dates,
+      aggregations.merged_time_series.counts
+    );
+
+    renderBarChart(
+      'prIssueDistribution',
+      aggregations.pr_issue_closing_distribution.repos,
+      aggregations.pr_issue_closing_distribution.counts,
+      { xaxis: { title: 'Repository' }, yaxis: { title: 'Closing Issues' } }
+    );
+
+    renderBarChart(
+      'prDetailHistogram',
+      aggregations.pr_detail_monthly_histogram.months,
+      aggregations.pr_detail_monthly_histogram.counts,
+      { xaxis: { title: 'Month' }, yaxis: { title: 'Pull Requests' } }
+    );
+
+    renderBarChart(
+      'issueLabelChart',
+      aggregations.issue_detail_top_labels.labels,
+      aggregations.issue_detail_top_labels.counts,
+      { xaxis: { title: 'Label' }, yaxis: { title: 'Usage Count' } }
+    );
+  </script>
+{% endblock %}
