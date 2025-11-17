@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="row g-3 mb-4">
+    {% for key, count in summary.items() %}
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card shadow-sm summary-card">
+          <div class="card-body">
+            <h5 class="card-title">{{ dataset_titles.get(key, key|title) }}</h5>
+            <p class="display-6 mb-0">{{ count }}</p>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
+    <div class="btn-group" role="group" aria-label="Dataset selector">
+      {% for key, title in dataset_titles.items() %}
+        <a
+          class="btn btn-outline-primary{% if key == dataset_name %} active{% endif %}"
+          href="{{ url_for('index', dataset=key) }}"
+        >
+          {{ title }}
+        </a>
+      {% endfor %}
+    </div>
+    {% if repo_filter %}
+      <span class="badge bg-info text-dark mt-2 mt-md-0">Filtered by repo: {{ repo_filter }}</span>
+    {% endif %}
+  </div>
+
+  <div class="table-responsive">
+    <table id="dataset-table" class="table table-striped table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Details</th>
+          {% for column in columns %}
+            <th scope="col">{{ column|replace('_', ' ')|title }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for record in records %}
+          <tr>
+            <td>
+              <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('dataset_detail', dataset_name=dataset_name, record_id=record['safe_id']) }}">View</a>
+            </td>
+            {% for column in columns %}
+              <td>{{ record['values'][column] }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
