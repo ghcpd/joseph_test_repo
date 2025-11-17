@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <h2 class="mb-0">Visualizations</h2>
+    <form class="d-flex align-items-center" method="get">
+      <label for="repo" class="me-2 mb-0">Filter by repository</label>
+      <input type="text" class="form-control me-2" id="repo" name="repo" placeholder="owner/repo" value="{{ repo_filter }}">
+      <button type="submit" class="btn btn-primary">Apply</button>
+      <a href="{{ url_for('visualize') }}" class="btn btn-link">Reset</a>
+    </form>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-xl-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Top Repositories by PR Count</h5>
+          <div id="chart-top-repos"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">PR Creation Timeline</h5>
+          <div id="chart-time-series"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Closing Issues per Repository</h5>
+          <div id="chart-closing-issues"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-xl-6">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">PRs by Month</h5>
+          <div id="chart-pr-months"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">Top Issue Labels</h5>
+          <div id="chart-top-labels"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const visualizationData = {{ visualization_data | tojson }};
+  renderCharts(visualizationData);
+</script>
+{% endblock %}
