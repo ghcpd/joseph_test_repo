@@ -1,0 +1,21 @@
+{
+  "name": "bac74331-51f4-4397-9e54-4632acfc45bc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test server.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "nock": "^13.5.4",
+    "supertest": "^6.3.4"
+  }
+}
