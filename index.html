@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub PR/Issue Viewer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <h1>GitHub PR &amp; Issue Viewer</h1>
+    <section class="controls">
+      <label for="repo-url">GitHub Repository URL</label>
+      <input id="repo-url" type="url" placeholder="https://github.com/user/repo" />
+
+      <label for="data-type">Select Data Type</label>
+      <select id="data-type">
+        <option value="pulls">Pull Requests</option>
+        <option value="issues">Issues</option>
+      </select>
+
+      <button id="fetch-btn" type="button">Fetch List</button>
+
+      <label for="item-list">Select PR/Issue</label>
+      <select id="item-list" disabled>
+        <option value="" disabled selected>Fetch a repository first</option>
+      </select>
+    </section>
+
+    <section class="details" id="details">
+      <p class="placeholder">Select an item to view its details.</p>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
