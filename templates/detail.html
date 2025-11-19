@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">{{ dataset_labels.get(dataset_name, dataset_name) }} Record</h1>
+      <p class="text-muted mb-0">Inspect every field alongside related entries.</p>
+    </div>
+    <div>
+      <a class="btn btn-outline-secondary" href="{{ url_for('dashboard', dataset=dataset_name) }}">&larr; Back to {{ dataset_labels.get(dataset_name, dataset_name) }}</a>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-lg-7">
+      <div class="card h-100">
+        <div class="card-header">
+          <h2 class="h5 mb-0">Record Details</h2>
+        </div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            {% for key, value in record.items() %}
+              <dt class="col-sm-4 text-sm-end">{{ key | replace('_', ' ') | title }}</dt>
+              <dd class="col-sm-8 text-break">
+                {% if value is mapping or (value is sequence and value is not string) %}
+                  <pre class="mb-0">{{ value | tojson(indent=2) }}</pre>
+                {% elif value is none or value == '' %}
+                  N/A
+                {% else %}
+                  {{ value }}
+                {% endif %}
+              </dd>
+            {% endfor %}
+          </dl>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-5">
+      <div class="card h-100">
+        <div class="card-header">
+          <h2 class="h5 mb-0">Related Data</h2>
+        </div>
+        <div class="card-body">
+          {% if not related_entries %}
+            <p class="text-muted mb-0">No related data found for this record.</p>
+          {% else %}
+            <div class="d-flex flex-column gap-3">
+              {% for group, entries in related_entries.items() %}
+                <div>
+                  <h3 class="h6 text-uppercase text-muted mb-2">{{ group }}</h3>
+                  <ul class="list-unstyled mb-0">
+                    {% for entry in entries %}
+                      <li class="mb-1">
+                        <a href="{{ entry.url }}" class="link-primary">{{ entry.text }}</a>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

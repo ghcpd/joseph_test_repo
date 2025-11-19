@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">Repository Dashboard</h1>
+      <p class="text-muted mb-0">Explore pull requests, issues, search results, and merged data in a unified view.</p>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    {% for name, count in summaries.items() %}
+      <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card summary-card h-100">
+          <div class="card-body">
+            <p class="text-uppercase small text-muted mb-1">{{ dataset_labels.get(name, name) }}</p>
+            <h2 class="fw-bold mb-0">{{ count }}</h2>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <ul class="nav nav-pills mb-4 flex-wrap">
+    {% for name, label in dataset_labels.items() %}
+      <li class="nav-item mb-2">
+        <a class="nav-link {% if name == dataset_name %}active{% endif %}" href="{{ url_for('dashboard', dataset=name) }}">{{ label }}</a>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <h2 class="h5 mb-0">{{ dataset_labels.get(dataset_name, dataset_name) }}</h2>
+        <span class="text-muted small">{{ dataset_records|length }} records</span>
+      </div>
+    </div>
+    <div class="card-body table-responsive">
+      <table id="dataset-table" class="table table-striped table-hover align-middle">
+        <thead>
+          <tr>
+            {% for column in display_columns %}
+              <th scope="col">{{ column | replace('_', ' ') | title }}</th>
+            {% endfor %}
+            <th scope="col" class="text-center">Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in dataset_records %}
+            <tr data-href="{{ url_for('dataset_detail', dataset_name=dataset_name, record_id=record.get('_record_id')) }}">
+              {% for column in display_columns %}
+                <td>{{ format_value(record.get(column)) }}</td>
+              {% endfor %}
+              <td class="text-center">
+                <a class="btn btn-outline-primary btn-sm" href="{{ url_for('dataset_detail', dataset_name=dataset_name, record_id=record.get('_record_id')) }}">View</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
