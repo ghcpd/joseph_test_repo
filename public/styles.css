@@ -1,0 +1,169 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f4f7fb;
+  color: #1f2937;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+h1 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: #1e3a8a;
+}
+
+.form {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.field {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+label {
+  font-weight: 600;
+}
+
+.inline-field {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.inline-field input {
+  flex: 1;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5f5;
+  font-size: 1rem;
+}
+
+button {
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+button:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+select {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #cbd5f5;
+  font-size: 1rem;
+}
+
+.info-panel {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  padding: 1.5rem;
+  border-left: 4px solid #d1d5db;
+  transition: border-color 200ms ease;
+}
+
+.info-panel.has-bug {
+  border-left-color: #ef4444;
+}
+
+.hidden {
+  display: none;
+}
+
+.meta {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.meta li {
+  display: flex;
+  gap: 0.4rem;
+  align-items: baseline;
+}
+
+.meta strong {
+  width: 5.5rem;
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+.labels {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.label-pill {
+  display: inline-flex;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1e3a8a;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.label-pill.bug {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.body-content h3 {
+  margin-top: 0;
+  font-size: 1.125rem;
+  color: #1e293b;
+}
+
+#item-body {
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .inline-field {
+    flex-direction: column;
+  }
+
+  button {
+    width: 100%;
+  }
+
+  .meta {
+    grid-template-columns: 1fr;
+  }
+}

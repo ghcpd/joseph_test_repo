@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Interactive GitHub PR/Issue Viewer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Interactive GitHub PR/Issue Viewer</h1>
+      <form id="repo-form" class="form" novalidate>
+        <div class="field">
+          <label for="repo-url">GitHub Repository URL</label>
+          <div class="inline-field">
+            <input
+              id="repo-url"
+              type="text"
+              placeholder="https://github.com/user/repo"
+              autocomplete="off"
+              required
+            />
+            <button id="fetch-button" type="submit">Fetch</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="data-type">Data Type</label>
+          <select id="data-type">
+            <option value="prs">Pull Requests</option>
+            <option value="issues">Issues</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="item-list">PRs / Issues</label>
+          <select id="item-list" disabled>
+            <option value="">No data loaded</option>
+          </select>
+        </div>
+      </form>
+
+      <section id="info-panel" class="info-panel hidden">
+        <h2 id="item-title"></h2>
+        <div id="label-badges" class="labels"></div>
+        <ul class="meta">
+          <li><strong>Author:</strong> <span id="item-author"></span></li>
+          <li><strong>Status:</strong> <span id="item-status"></span></li>
+          <li><strong>Created:</strong> <span id="item-created"></span></li>
+          <li><strong>Updated:</strong> <span id="item-updated"></span></li>
+        </ul>
+        <article class="body-content">
+          <h3>Details</h3>
+          <p id="item-body"></p>
+        </article>
+      </section>
+    </main>
+    <script src="app.js" defer></script>
+  </body>
+</html>
