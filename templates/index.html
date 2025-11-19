@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - PR/Issue Data Viewer{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Data Dashboard</h1>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">PR Issue Single</h5>
+                <p class="card-text display-6">{{ summary.pr_issue_single }}</p>
+                <a href="/?dataset=pr_issue_single" class="btn btn-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">PR Detail</h5>
+                <p class="card-text display-6">{{ summary.pr_detail }}</p>
+                <a href="/?dataset=pr_detail" class="btn btn-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Issue Detail</h5>
+                <p class="card-text display-6">{{ summary.issue_detail }}</p>
+                <a href="/?dataset=issue_detail" class="btn btn-light btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h5 class="card-title">Merged Data</h5>
+                <p class="card-text display-6">{{ summary.merged_data }}</p>
+                <a href="/?dataset=merged_data" class="btn btn-dark btn-sm">View</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dataset Selector -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link {% if selected_dataset == 'pr_issue_single' %}active{% endif %}" 
+                           href="/?dataset=pr_issue_single">PR Issue Single</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if selected_dataset == 'pr_detail' %}active{% endif %}" 
+                           href="/?dataset=pr_detail">PR Detail</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if selected_dataset == 'issue_detail' %}active{% endif %}" 
+                           href="/?dataset=issue_detail">Issue Detail</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if selected_dataset == 'merged_data' %}active{% endif %}" 
+                           href="/?dataset=merged_data">Merged Data</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">{{ selected_dataset|replace('_', ' ')|title }} ({{ data|length }} records)</h5>
+                
+                {% if data %}
+                <div class="table-responsive">
+                    <table id="dataTable" class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                {% for col in columns %}
+                                <th>{{ col|replace('_', ' ')|title }}</th>
+                                {% endfor %}
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in data %}
+                            <tr>
+                                {% for col in columns %}
+                                <td>{{ record[col]|format_value }}</td>
+                                {% endfor %}
+                                <td>
+                                    {% if selected_dataset == 'merged_data' %}
+                                    <a href="/dataset/{{ selected_dataset }}/{{ loop.index0 }}" 
+                                       class="btn btn-sm btn-primary">View</a>
+                                    {% elif 'id' in record %}
+                                    <a href="/dataset/{{ selected_dataset }}/{{ record.id }}" 
+                                       class="btn btn-sm btn-primary">View</a>
+                                    {% elif 'pr_number' in record %}
+                                    <a href="/dataset/{{ selected_dataset }}/{{ record.pr_number }}" 
+                                       class="btn btn-sm btn-primary">View</a>
+                                    {% elif 'issue_number' in record %}
+                                    <a href="/dataset/{{ selected_dataset }}/{{ record.issue_number }}" 
+                                       class="btn btn-sm btn-primary">View</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#dataTable').DataTable({
+        pageLength: 25,
+        order: [[0, 'asc']],
+        responsive: true
+    });
+});
+</script>
+{% endblock %}

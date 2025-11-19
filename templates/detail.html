@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}{{ dataset_name|replace('_', ' ')|title }} Detail{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                <li class="breadcrumb-item"><a href="/?dataset={{ dataset_name }}">{{ dataset_name|replace('_', ' ')|title }}</a></li>
+                <li class="breadcrumb-item active">Detail</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Record Details</h4>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    {% for key, value in record.items() %}
+                    <dt class="col-sm-4">{{ key|replace('_', ' ')|title }}</dt>
+                    <dd class="col-sm-8">
+                        {% if 'at' in key|lower and value != 'N/A' %}
+                            {{ value|format_date }}
+                        {% else %}
+                            {{ value|format_value }}
+                        {% endif %}
+                    </dd>
+                    {% endfor %}
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        {% if related %}
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Related Data</h5>
+            </div>
+            <div class="card-body">
+                {% if related.issue %}
+                <div class="mb-3">
+                    <h6 class="text-muted">Related Issue</h6>
+                    <p><strong>{{ related.issue.title }}</strong></p>
+                    <p class="small">
+                        Issue #{{ related.issue.issue_number }}<br>
+                        {{ related.issue.repo }}<br>
+                        Status: <span class="badge bg-{{ 'success' if related.issue.state == 'closed' else 'warning' }}">
+                            {{ related.issue.state }}
+                        </span>
+                    </p>
+                    <a href="/dataset/issue_detail/{{ related.issue.id }}" class="btn btn-sm btn-success">
+                        View Issue Detail
+                    </a>
+                </div>
+                {% endif %}
+
+                {% if related.pr %}
+                <div class="mb-3">
+                    <h6 class="text-muted">Related Pull Request</h6>
+                    <p><strong>{{ related.pr.title }}</strong></p>
+                    <p class="small">
+                        PR #{{ related.pr.pr_number }}<br>
+                        {{ related.pr.repo }}<br>
+                        Status: <span class="badge bg-{{ 'success' if related.pr.state == 'closed' else 'warning' }}">
+                            {{ related.pr.state }}
+                        </span>
+                    </p>
+                    <a href="/dataset/pr_detail/{{ related.pr.id }}" class="btn btn-sm btn-success">
+                        View PR Detail
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="/?dataset={{ dataset_name }}" class="btn btn-primary btn-block mb-2 w-100">
+                    Back to {{ dataset_name|replace('_', ' ')|title }}
+                </a>
+                <a href="/" class="btn btn-secondary btn-block w-100">
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
