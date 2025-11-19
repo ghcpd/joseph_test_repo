@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">Data Visualizations</h1>
+      <p class="text-muted mb-0">Interact with charts powered by Plotly and filter them by repository.</p>
+    </div>
+  </div>
+
+  <form method="get" class="row g-3 align-items-end mb-4">
+    <div class="col-12 col-md-6 col-lg-4">
+      <label for="repo" class="form-label">Filter by repository</label>
+      <select class="form-select" id="repo" name="repo">
+        <option value="" {% if not repo_filter %}selected{% endif %}>All repositories</option>
+        {% for repo in available_repos %}
+          <option value="{{ repo }}" {% if repo_filter == repo %}selected{% endif %}>{{ repo }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-4 col-lg-2">
+      <button type="submit" class="btn btn-primary w-100">Apply</button>
+    </div>
+    <div class="col-12 col-md-4 col-lg-2">
+      {% if repo_filter %}
+        <a class="btn btn-outline-secondary w-100" href="{{ url_for('visualize') }}">Reset</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="row g-4">
+    <div class="col-12">
+      <div class="card h-100">
+        <div class="card-header">
+          <h2 class="h5 mb-0">Top Repositories by PR Count (Merged Data)</h2>
+        </div>
+        <div class="card-body">
+          <div id="merged-repo-chart" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card h-100">
+        <div class="card-header">
+          <h2 class="h5 mb-0">PR Creation Timeline (Merged Data)</h2>
+        </div>
+        <div class="card-body">
+          <div id="merged-time-chart" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card h-100">
+        <div class="card-header">
+          <h2 class="h5 mb-0">Closing Issue Counts per Repository (PR Issue Search)</h2>
+        </div>
+        <div class="card-body">
+          <div id="pr-issue-chart" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card h-100">
+        <div class="card-header">
+          <h2 class="h5 mb-0">PRs per Month (PR Detail)</h2>
+        </div>
+        <div class="card-body">
+          <div id="pr-detail-chart" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="card h-100">
+        <div class="card-header">
+          <h2 class="h5 mb-0">Top Issue Labels</h2>
+        </div>
+        <div class="card-body">
+          <div id="issue-label-chart" class="chart-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const charts = {{ charts | tojson }};
+
+    const repoCounts = charts["merged_repo_counts"];
+    Plotly.newPlot('merged-repo-chart', [
+      {
+        type: 'bar',
+        x: repoCounts.labels,
+        y: repoCounts.values,
+        marker: {color: '#0d6efd'}
+      }
+    ], {
+      margin: {t: 40, r: 10, l: 50, b: 80},
+      xaxis: {title: 'Repository'},
+      yaxis: {title: 'PR Count'}
+    }, {responsive: true});
+
+    const timeSeries = charts["merged_pr_timeseries"];
+    Plotly.newPlot('merged-time-chart', [
+      {
+        type: 'scatter',
+        mode: 'lines+markers',
+        x: timeSeries.dates,
+        y: timeSeries.counts,
+        line: {color: '#6610f2'}
+      }
+    ], {
+      margin: {t: 40, r: 10, l: 50, b: 80},
+      xaxis: {title: 'Date'},
+      yaxis: {title: 'New PRs'},
+    }, {responsive: true});
+
+    const prIssueCounts = charts["pr_issue_closing_counts"];
+    Plotly.newPlot('pr-issue-chart', [
+      {
+        type: 'bar',
+        x: prIssueCounts.labels,
+        y: prIssueCounts.values,
+        marker: {color: '#198754'}
+      }
+    ], {
+      margin: {t: 40, r: 10, l: 50, b: 80},
+      xaxis: {title: 'Repository'},
+      yaxis: {title: 'Closing Issue Count'}
+    }, {responsive: true});
+
+    const prDetailHist = charts["pr_detail_month_hist"];
+    Plotly.newPlot('pr-detail-chart', [
+      {
+        type: 'bar',
+        x: prDetailHist.labels,
+        y: prDetailHist.values,
+        marker: {color: '#fd7e14'}
+      }
+    ], {
+      margin: {t: 40, r: 10, l: 50, b: 80},
+      xaxis: {title: 'Month'},
+      yaxis: {title: 'PR Count'}
+    }, {responsive: true});
+
+    const issueLabels = charts["issue_top_labels"];
+    Plotly.newPlot('issue-label-chart', [
+      {
+        type: 'bar',
+        x: issueLabels.labels,
+        y: issueLabels.values,
+        marker: {color: '#dc3545'}
+      }
+    ], {
+      margin: {t: 40, r: 10, l: 50, b: 80},
+      xaxis: {title: 'Label'},
+      yaxis: {title: 'Frequency'}
+    }, {responsive: true});
+  </script>
+{% endblock %}
