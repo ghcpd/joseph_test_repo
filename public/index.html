@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GitHub PR/Issue Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f2f5f7;
+      color: #222;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 24px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    h1 {
+      font-size: 26px;
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+
+    p.description {
+      color: #555;
+      margin: 0 0 24px 0;
+    }
+
+    .control-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    label {
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    select {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #d0d7de;
+      font-size: 14px;
+      min-width: 200px;
+    }
+
+    input[type="text"] {
+      flex: 1 0 260px;
+    }
+
+    button {
+      padding: 10px 18px;
+      background: #0969da;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #0554b5;
+    }
+
+    button:disabled,
+    select:disabled {
+      background: #d0d7de;
+      color: #6f7781;
+      cursor: not-allowed;
+    }
+
+    .error-banner {
+      background: #fdd;
+      border: 1px solid #f5b2b2;
+      color: #7d2020;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .details-panel {
+      background: #f6f8fa;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #d8dee4;
+      display: none;
+    }
+
+    .details-panel h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 16px;
+      color: #4a5568;
+      font-size: 14px;
+    }
+
+    .meta span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .body-content {
+      white-space: pre-wrap;
+      line-height: 1.5;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #d8dee4;
+      padding: 16px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .empty-message {
+      font-style: italic;
+      color: #6f7781;
+      margin: 8px 0;
+    }
+
+    .labels {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .label-chip {
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: #e1ecf4;
+      color: #0366d6;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Interactive GitHub PR/Issue Viewer</h1>
+    <p class="description">Enter a repository URL, choose whether to view pull requests or issues, and then inspect the details without leaving the page.</p>
+
+    <div class="control-group">
+      <label for="repoInput">GitHub Repository:</label>
+      <input type="text" id="repoInput" placeholder="https://github.com/user/repo">
+    </div>
+
+    <div class="control-group">
+      <label for="typeSelect">Data type:</label>
+      <select id="typeSelect">
+        <option value="prs">Pull Requests</option>
+        <option value="issues">Issues</option>
+      </select>
+      <button id="loadButton">Fetch List</button>
+    </div>
+
+    <div class="control-group">
+      <label for="itemSelect">Available items:</label>
+      <select id="itemSelect" disabled>
+        <option value="">Select a pull request or issue</option>
+      </select>
+    </div>
+
+    <div id="errorBanner" class="error-banner"></div>
+
+    <div id="emptyMessage" class="empty-message" style="display: none;">No items found for this repository.</div>
+
+    <div id="detailsPanel" class="details-panel">
+      <h2 id="detailTitle"></h2>
+      <div id="labelsContainer" class="labels"></div>
+      <div class="meta">
+        <span id="detailAuthor"></span>
+        <span id="detailStatus"></span>
+        <span id="detailCreated"></span>
+        <span id="detailUpdated"></span>
+      </div>
+      <div class="body-content" id="detailBody"></div>
+      <div style="margin-top: 12px;">
+        <a id="detailLink" href="#" target="_blank" rel="noopener noreferrer">Open on GitHub</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const repoInput = document.getElementById('repoInput');
+    const typeSelect = document.getElementById('typeSelect');
+    const loadButton = document.getElementById('loadButton');
+    const itemSelect = document.getElementById('itemSelect');
+    const errorBanner = document.getElementById('errorBanner');
+    const detailsPanel = document.getElementById('detailsPanel');
+    const detailTitle = document.getElementById('detailTitle');
+    const detailAuthor = document.getElementById('detailAuthor');
+    const detailStatus = document.getElementById('detailStatus');
+    const detailCreated = document.getElementById('detailCreated');
+    const detailUpdated = document.getElementById('detailUpdated');
+    const detailBody = document.getElementById('detailBody');
+    const detailLink = document.getElementById('detailLink');
+    const emptyMessage = document.getElementById('emptyMessage');
+    const labelsContainer = document.getElementById('labelsContainer');
+
+    let currentRepoPath = '';
+    let currentType = 'prs';
+
+    function parseRepoInput(value) {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        throw new Error('Please enter a repository URL.');
+      }
+
+      const fullUrlMatch = trimmed.match(/^https:\/\/github\.com\/([^\/]+)\/([^\/#?]+)(?:\/.+)?$/i);
+      if (fullUrlMatch) {
+        return `${fullUrlMatch[1]}/${fullUrlMatch[2]}`;
+      }
+
+      const simpleMatch = trimmed.match(/^[^\s\/]+\/[^\s\/]+$/);
+      if (simpleMatch) {
+        return simpleMatch[0];
+      }
+
+      throw new Error('Enter a valid GitHub repository URL, e.g. https://github.com/user/repo.');
+    }
+
+    function showError(message) {
+      errorBanner.textContent = message;
+      errorBanner.style.display = 'block';
+    }
+
+    function clearError() {
+      errorBanner.style.display = 'none';
+      errorBanner.textContent = '';
+    }
+
+    function clearDetails() {
+      detailsPanel.style.display = 'none';
+      detailTitle.textContent = '';
+      detailAuthor.textContent = '';
+      detailStatus.textContent = '';
+      detailCreated.textContent = '';
+      detailUpdated.textContent = '';
+      detailBody.textContent = '';
+      detailLink.href = '#';
+      labelsContainer.innerHTML = '';
+      detailsPanel.style.borderColor = '#d8dee4';
+    }
+
+    function formatDate(value) {
+      if (!value) return 'Unknown date';
+      const date = new Date(value);
+      return date.toLocaleString();
+    }
+
+    function buildStatusText(detail) {
+      if (currentType === 'prs') {
+        if (detail.status === 'merged') {
+          return 'Status: Merged';
+        }
+        if (detail.status) {
+          return `Status: ${detail.status.charAt(0).toUpperCase()}${detail.status.slice(1)}`;
+        }
+        return 'Status: Unknown';
+      }
+      return detail.status ? `Status: ${detail.status.charAt(0).toUpperCase()}${detail.status.slice(1)}` : 'Status: Unknown';
+    }
+
+    function populateLabels(labels) {
+      labelsContainer.innerHTML = '';
+      if (!labels || labels.length === 0) {
+        return;
+      }
+      labels.forEach((label) => {
+        const span = document.createElement('span');
+        span.className = 'label-chip';
+        span.textContent = label;
+        labelsContainer.appendChild(span);
+      });
+    }
+
+    async function fetchList() {
+      clearError();
+      clearDetails();
+      emptyMessage.style.display = 'none';
+      itemSelect.innerHTML = '<option value="">Select a pull request or issue</option>';
+      itemSelect.disabled = true;
+
+      let repoPath;
+      try {
+        repoPath = parseRepoInput(repoInput.value);
+      } catch (error) {
+        alert(error.message);
+        return;
+      }
+
+      currentRepoPath = repoPath;
+      currentType = typeSelect.value;
+
+      const endpoint = currentType === 'prs' ? '/api/prs' : '/api/issues';
+      try {
+        loadButton.disabled = true;
+        loadButton.textContent = 'Loading...';
+        const response = await fetch(`${endpoint}?repo=${encodeURIComponent(repoPath)}`);
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to load items.');
+        }
+
+        const items = data.items || [];
+        if (items.length === 0) {
+          emptyMessage.style.display = 'block';
+          return;
+        }
+
+        items.forEach((item) => {
+          const option = document.createElement('option');
+          option.value = item.number;
+          option.textContent = `#${item.number} – ${item.title}`;
+          itemSelect.appendChild(option);
+        });
+
+        itemSelect.disabled = false;
+      } catch (error) {
+        showError(error.message);
+      } finally {
+        loadButton.disabled = false;
+        loadButton.textContent = 'Fetch List';
+      }
+    }
+
+    async function fetchDetails(event) {
+      const selectedNumber = event.target.value;
+      if (!selectedNumber) {
+        clearDetails();
+        return;
+      }
+
+      try {
+        clearError();
+        const endpointPrefix = currentType === 'prs' ? '/api/prs' : '/api/issues';
+        const detailResponse = await fetch(`${endpointPrefix}/${selectedNumber}?repo=${encodeURIComponent(currentRepoPath)}`);
+        const detailData = await detailResponse.json();
+        if (!detailResponse.ok) {
+          throw new Error(detailData.error || 'Failed to load details.');
+        }
+
+        displayDetails(detailData);
+      } catch (error) {
+        showError(error.message);
+        clearDetails();
+      }
+    }
+
+    function displayDetails(detail) {
+      detailsPanel.style.display = 'block';
+      detailTitle.textContent = detail.title || 'Untitled';
+      detailAuthor.textContent = detail.author ? `Author: ${detail.author}` : 'Author: Unknown';
+      detailStatus.textContent = buildStatusText(detail);
+      detailCreated.textContent = `Created: ${formatDate(detail.created_at)}`;
+      detailUpdated.textContent = `Updated: ${formatDate(detail.updated_at)}`;
+      detailBody.textContent = detail.body || '(No description provided)';
+      detailLink.href = detail.html_url || '#';
+      populateLabels(detail.labels);
+      const hasBugLabel = Array.isArray(detail.labels) && detail.labels.some((label) => label.toLowerCase() === 'bug');
+      detailsPanel.style.borderColor = hasBugLabel ? '#d93025' : '#d8dee4';
+    }
+
+    loadButton.addEventListener('click', fetchList);
+    itemSelect.addEventListener('change', fetchDetails);
+  </script>
+</body>
+</html>
