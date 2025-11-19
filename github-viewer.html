@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub PR/Issue Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .detail-panel {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            display: none;
+        }
+
+        .detail-panel.visible {
+            display: block;
+        }
+
+        .detail-panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        .detail-value {
+            color: #333;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-open {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-closed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-merged {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .body-content {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .error-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px 20px;
+            border-radius: 6px;
+            border: 2px solid #f5c6cb;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 1000;
+            max-width: 400px;
+        }
+
+        .error-popup.visible {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .close-error {
+            float: right;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .labels {
+            margin-top: 10px;
+        }
+
+        .label-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            margin: 2px;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .label-bug {
+            background: #d73a4a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 GitHub PR/Issue Viewer</h1>
+            <p>Fetch and display Pull Requests or Issues from any GitHub repository</p>
+        </div>
+        
+        <div class="content">
+            <!-- Repository URL Input -->
+            <div class="form-group">
+                <label for="repo-url">GitHub Repository URL</label>
+                <input 
+                    type="text" 
+                    id="repo-url" 
+                    placeholder="https://github.com/user/repo"
+                    value="https://github.com/microsoft/vscode"
+                >
+            </div>
+
+            <!-- Data Type Selection -->
+            <div class="form-group">
+                <label for="data-type">Select Data Type</label>
+                <select id="data-type">
+                    <option value="pulls">Pull Requests</option>
+                    <option value="issues">Issues</option>
+                </select>
+            </div>
+
+            <!-- Fetch Button -->
+            <div class="form-group">
+                <button id="fetch-btn" onclick="fetchList()">Fetch List</button>
+            </div>
+
+            <!-- List Selection -->
+            <div class="form-group hidden" id="list-group">
+                <label for="item-list">Select an Item</label>
+                <select id="item-list" onchange="showDetails()">
+                    <option value="">-- Select --</option>
+                </select>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="loading hidden">Loading...</div>
+
+            <!-- Detail Panel -->
+            <div id="detail-panel" class="detail-panel">
+                <h2 id="detail-title"></h2>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Number:</span>
+                    <span class="detail-value" id="detail-number"></span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Author:</span>
+                    <span class="detail-value" id="detail-author"></span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Status:</span>
+                    <span id="detail-status"></span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Created:</span>
+                    <span class="detail-value" id="detail-created"></span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Updated:</span>
+                    <span class="detail-value" id="detail-updated"></span>
+                </div>
+
+                <div class="detail-item" id="labels-container">
+                    <span class="detail-label">Labels:</span>
+                    <div class="labels" id="detail-labels"></div>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Description:</span>
+                    <div class="body-content" id="detail-body"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Popup -->
+    <div id="error-popup" class="error-popup">
+        <span class="close-error" onclick="closeError()">✕</span>
+        <span id="error-message"></span>
+    </div>
+
+    <script>
+        // Store fetched data
+        let currentData = [];
+        let currentOwner = '';
+        let currentRepo = '';
+
+        // Show error popup
+        function showError(message) {
+            const errorPopup = document.getElementById('error-popup');
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            errorPopup.classList.add('visible');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                closeError();
+            }, 5000);
+        }
+
+        // Close error popup
+        function closeError() {
+            const errorPopup = document.getElementById('error-popup');
+            errorPopup.classList.remove('visible');
+        }
+
+        // Validate GitHub URL
+        function validateGitHubUrl(url) {
+            const pattern = /^https?:\/\/(www\.)?github\.com\/([^\/]+)\/([^\/]+)\/?$/;
+            const match = url.match(pattern);
+            
+            if (!match) {
+                return { valid: false, error: 'Invalid GitHub URL format. Expected: https://github.com/user/repo' };
+            }
+            
+            return { valid: true, owner: match[2], repo: match[3] };
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        }
+
+        // Show loading indicator
+        function showLoading() {
+            document.getElementById('loading').classList.remove('hidden');
+        }
+
+        // Hide loading indicator
+        function hideLoading() {
+            document.getElementById('loading').classList.add('hidden');
+        }
+
+        // Fetch list of PRs or Issues
+        async function fetchList() {
+            const url = document.getElementById('repo-url').value.trim();
+            const dataType = document.getElementById('data-type').value;
+            
+            // Validate URL
+            const validation = validateGitHubUrl(url);
+            if (!validation.valid) {
+                showError(validation.error);
+                return;
+            }
+            
+            currentOwner = validation.owner;
+            currentRepo = validation.repo;
+            
+            // Clear previous data
+            currentData = [];
+            document.getElementById('item-list').innerHTML = '<option value="">-- Select --</option>';
+            document.getElementById('list-group').classList.add('hidden');
+            document.getElementById('detail-panel').classList.remove('visible');
+            
+            showLoading();
+            
+            try {
+                // Build API URL
+                const apiUrl = `https://api.github.com/repos/${currentOwner}/${currentRepo}/${dataType}?state=all&per_page=50`;
+                
+                const response = await fetch(apiUrl, {
+                    headers: {
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('Repository not found. Please check the URL.');
+                    } else if (response.status === 403) {
+                        throw new Error('API rate limit exceeded. Please try again later.');
+                    } else {
+                        throw new Error(`Failed to fetch data: ${response.statusText}`);
+                    }
+                }
+                
+                const data = await response.json();
+                
+                if (data.length === 0) {
+                    showError(`No ${dataType === 'pulls' ? 'Pull Requests' : 'Issues'} found in this repository.`);
+                    hideLoading();
+                    return;
+                }
+                
+                currentData = data;
+                
+                // Populate dropdown
+                const select = document.getElementById('item-list');
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.number;
+                    option.textContent = `#${item.number} - ${item.title}`;
+                    select.appendChild(option);
+                });
+                
+                document.getElementById('list-group').classList.remove('hidden');
+                hideLoading();
+                
+            } catch (error) {
+                hideLoading();
+                showError(error.message);
+            }
+        }
+
+        // Show details of selected item
+        function showDetails() {
+            const selectedNumber = document.getElementById('item-list').value;
+            
+            if (!selectedNumber) {
+                document.getElementById('detail-panel').classList.remove('visible');
+                return;
+            }
+            
+            const item = currentData.find(i => i.number == selectedNumber);
+            
+            if (!item) {
+                return;
+            }
+            
+            // Populate details
+            document.getElementById('detail-title').textContent = item.title;
+            document.getElementById('detail-number').textContent = `#${item.number}`;
+            document.getElementById('detail-author').textContent = item.user.login;
+            document.getElementById('detail-created').textContent = formatDate(item.created_at);
+            document.getElementById('detail-updated').textContent = formatDate(item.updated_at);
+            document.getElementById('detail-body').textContent = item.body || 'No description provided.';
+            
+            // Status badge
+            let statusClass = 'status-open';
+            let statusText = item.state;
+            
+            if (item.state === 'closed') {
+                // Check if PR is merged
+                if (item.pull_request && item.merged_at) {
+                    statusClass = 'status-merged';
+                    statusText = 'merged';
+                } else {
+                    statusClass = 'status-closed';
+                    statusText = 'closed';
+                }
+            } else {
+                statusClass = 'status-open';
+                statusText = 'open';
+            }
+            
+            document.getElementById('detail-status').innerHTML = 
+                `<span class="status-badge ${statusClass}">${statusText}</span>`;
+            
+            // Labels
+            const labelsContainer = document.getElementById('detail-labels');
+            labelsContainer.innerHTML = '';
+            
+            if (item.labels && item.labels.length > 0) {
+                document.getElementById('labels-container').style.display = 'block';
+                item.labels.forEach(label => {
+                    const labelTag = document.createElement('span');
+                    labelTag.className = 'label-tag';
+                    if (label.name.toLowerCase().includes('bug')) {
+                        labelTag.classList.add('label-bug');
+                    }
+                    labelTag.textContent = label.name;
+                    labelTag.style.backgroundColor = `#${label.color}`;
+                    
+                    // Calculate contrast for text color
+                    const color = parseInt(label.color, 16);
+                    const r = (color >> 16) & 255;
+                    const g = (color >> 8) & 255;
+                    const b = color & 255;
+                    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+                    labelTag.style.color = brightness > 128 ? '#000' : '#fff';
+                    
+                    labelsContainer.appendChild(labelTag);
+                });
+            } else {
+                document.getElementById('labels-container').style.display = 'none';
+            }
+            
+            // Show detail panel
+            document.getElementById('detail-panel').classList.add('visible');
+        }
+    </script>
+</body>
+</html>

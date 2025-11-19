@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub PR/Issue Viewer - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .detail-panel {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .detail-panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        .detail-value {
+            color: #333;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-open {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-closed {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-merged {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .body-content {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .labels {
+            margin-top: 10px;
+        }
+
+        .label-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            margin: 2px;
+            border-radius: 4px;
+            font-size: 12px;
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .label-bug {
+            background: #d73a4a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 GitHub PR/Issue Viewer - Demo</h1>
+            <p>Interactive demonstration with sample data</p>
+        </div>
+        
+        <div class="content">
+            <!-- Repository URL Input -->
+            <div class="form-group">
+                <label for="repo-url">GitHub Repository URL</label>
+                <input 
+                    type="text" 
+                    id="repo-url" 
+                    value="https://github.com/microsoft/vscode"
+                    disabled
+                >
+            </div>
+
+            <!-- Data Type Selection -->
+            <div class="form-group">
+                <label for="data-type">Select Data Type</label>
+                <select id="data-type" disabled>
+                    <option value="pulls" selected>Pull Requests</option>
+                    <option value="issues">Issues</option>
+                </select>
+            </div>
+
+            <!-- List Selection -->
+            <div class="form-group">
+                <label for="item-list">Select an Item</label>
+                <select id="item-list" onchange="showDetails()">
+                    <option value="">-- Select --</option>
+                    <option value="1">#12345 - Fix memory leak in extension host</option>
+                    <option value="2">#12344 - Add support for workspace trust</option>
+                    <option value="3">#12343 - Improve terminal performance</option>
+                </select>
+            </div>
+
+            <!-- Detail Panel -->
+            <div id="detail-panel" class="detail-panel" style="display: none;">
+                <h2 id="detail-title">Fix memory leak in extension host</h2>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Number:</span>
+                    <span class="detail-value" id="detail-number">#12345</span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Author:</span>
+                    <span class="detail-value" id="detail-author">octocat</span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Status:</span>
+                    <span id="detail-status">
+                        <span class="status-badge status-merged">merged</span>
+                    </span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Created:</span>
+                    <span class="detail-value" id="detail-created">11/15/2024, 10:30:00 AM</span>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Updated:</span>
+                    <span class="detail-value" id="detail-updated">11/18/2024, 2:45:00 PM</span>
+                </div>
+
+                <div class="detail-item" id="labels-container">
+                    <span class="detail-label">Labels:</span>
+                    <div class="labels" id="detail-labels">
+                        <span class="label-tag label-bug">bug</span>
+                        <span class="label-tag" style="background: #0075ca; color: white;">enhancement</span>
+                        <span class="label-tag" style="background: #d4c5f9; color: black;">performance</span>
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <span class="detail-label">Description:</span>
+                    <div class="body-content" id="detail-body">This PR fixes a critical memory leak that was occurring in the extension host process. The leak was caused by event listeners not being properly cleaned up when extensions were deactivated.
+
+Changes:
+- Added proper cleanup logic in extension deactivation
+- Implemented weak references for event handlers
+- Added tests to verify memory is freed correctly
+
+Fixes #12340</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sampleData = {
+            '1': {
+                title: 'Fix memory leak in extension host',
+                number: '12345',
+                author: 'octocat',
+                status: 'merged',
+                statusClass: 'status-merged',
+                created: '11/15/2024, 10:30:00 AM',
+                updated: '11/18/2024, 2:45:00 PM',
+                labels: [
+                    { name: 'bug', color: 'd73a4a', isBug: true },
+                    { name: 'enhancement', color: '0075ca', isBug: false },
+                    { name: 'performance', color: 'd4c5f9', isBug: false }
+                ],
+                body: `This PR fixes a critical memory leak that was occurring in the extension host process. The leak was caused by event listeners not being properly cleaned up when extensions were deactivated.
+
+Changes:
+- Added proper cleanup logic in extension deactivation
+- Implemented weak references for event handlers
+- Added tests to verify memory is freed correctly
+
+Fixes #12340`
+            },
+            '2': {
+                title: 'Add support for workspace trust',
+                number: '12344',
+                author: 'developer123',
+                status: 'open',
+                statusClass: 'status-open',
+                created: '11/16/2024, 9:15:00 AM',
+                updated: '11/19/2024, 11:20:00 AM',
+                labels: [
+                    { name: 'feature-request', color: 'a2eeef', isBug: false },
+                    { name: 'security', color: 'ee0701', isBug: false }
+                ],
+                body: `Implements workspace trust feature to improve security when opening untrusted workspaces.
+
+Features:
+- Adds trust dialog on workspace open
+- Restricts certain operations in untrusted mode
+- Allows users to configure trusted paths
+- Provides API for extensions to check trust state
+
+Related to #11234`
+            },
+            '3': {
+                title: 'Improve terminal performance',
+                number: '12343',
+                author: 'contributor456',
+                status: 'closed',
+                statusClass: 'status-closed',
+                created: '11/14/2024, 3:20:00 PM',
+                updated: '11/17/2024, 4:30:00 PM',
+                labels: [
+                    { name: 'performance', color: 'd4c5f9', isBug: false },
+                    { name: 'terminal', color: 'bfdadc', isBug: false }
+                ],
+                body: `Optimizes terminal rendering to reduce CPU usage and improve responsiveness.
+
+Improvements:
+- Implemented virtual scrolling for large outputs
+- Reduced unnecessary repaints
+- Optimized ANSI escape code parsing
+- Added performance tests
+
+Benchmark results show 40% reduction in CPU usage for typical terminal operations.`
+            }
+        };
+
+        function showDetails() {
+            const selectedId = document.getElementById('item-list').value;
+            const detailPanel = document.getElementById('detail-panel');
+            
+            if (!selectedId) {
+                detailPanel.style.display = 'none';
+                return;
+            }
+            
+            const data = sampleData[selectedId];
+            
+            document.getElementById('detail-title').textContent = data.title;
+            document.getElementById('detail-number').textContent = '#' + data.number;
+            document.getElementById('detail-author').textContent = data.author;
+            document.getElementById('detail-created').textContent = data.created;
+            document.getElementById('detail-updated').textContent = data.updated;
+            document.getElementById('detail-body').textContent = data.body;
+            
+            document.getElementById('detail-status').innerHTML = 
+                `<span class="status-badge ${data.statusClass}">${data.status}</span>`;
+            
+            const labelsContainer = document.getElementById('detail-labels');
+            labelsContainer.innerHTML = '';
+            
+            data.labels.forEach(label => {
+                const labelTag = document.createElement('span');
+                labelTag.className = 'label-tag';
+                if (label.isBug) {
+                    labelTag.classList.add('label-bug');
+                } else {
+                    labelTag.style.backgroundColor = `#${label.color}`;
+                    const color = parseInt(label.color, 16);
+                    const r = (color >> 16) & 255;
+                    const g = (color >> 8) & 255;
+                    const b = color & 255;
+                    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+                    labelTag.style.color = brightness > 128 ? '#000' : '#fff';
+                }
+                labelTag.textContent = label.name;
+                labelsContainer.appendChild(labelTag);
+            });
+            
+            detailPanel.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
