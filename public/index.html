@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub PR/Issue Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>GitHub PR/Issue Viewer</h1>
+        
+        <div class="input-section">
+            <label for="repoUrl">GitHub Repository URL:</label>
+            <input 
+                type="text" 
+                id="repoUrl" 
+                placeholder="e.g., https://github.com/user/repo or user/repo"
+                class="input-field"
+            >
+            <p class="hint">Enter a GitHub repository URL (https://github.com/user/repo) or just user/repo</p>
+        </div>
+
+        <div class="input-section">
+            <label for="dataType">Data Type:</label>
+            <select id="dataType" class="dropdown">
+                <option value="">-- Select Type --</option>
+                <option value="prs">Pull Requests</option>
+                <option value="issues">Issues</option>
+            </select>
+        </div>
+
+        <button id="fetchBtn" class="btn-primary">Fetch Data</button>
+
+        <div id="itemsSection" class="input-section" style="display: none;">
+            <label for="itemSelect">Select Item:</label>
+            <select id="itemSelect" class="dropdown">
+                <option value="">-- Select Item --</option>
+            </select>
+        </div>
+
+        <div id="detailsPanel" class="details-panel" style="display: none;">
+            <h2>Details</h2>
+            <div id="detailsContent"></div>
+        </div>
+
+        <div id="loadingIndicator" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="errorModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Error</h2>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
