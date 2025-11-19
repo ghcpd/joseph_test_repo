@@ -291,4 +291,6 @@ def format_value(value):
 
 if __name__ == '__main__':
     load_all_data()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Use DEBUG environment variable to enable debug mode (default: False)
+    debug_mode = os.environ.get('DEBUG', 'False').lower() == 'true'
+    app.run(debug=debug_mode, host='0.0.0.0', port=5000)

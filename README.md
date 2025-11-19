@@ -81,6 +81,11 @@ A Flask-based web application for processing and visualizing GitHub pull request
    ```bash
    python app.py
    ```
+   
+   **Note**: For development with debug mode enabled:
+   ```bash
+   DEBUG=true python app.py
+   ```
 
 2. **Access the application**:
    Open your browser and navigate to:
@@ -226,11 +231,13 @@ To modify the application:
 
 ### Debug Mode
 
-The application runs in debug mode by default when started with `python app.py`. To disable:
+Debug mode is disabled by default for security. To enable during development:
 
-```python
-app.run(debug=False, host='0.0.0.0', port=5000)
+```bash
+DEBUG=true python app.py
 ```
+
+**Warning**: Never run with debug mode enabled in production as it can expose sensitive information and allow arbitrary code execution.
 
 ## License
 
